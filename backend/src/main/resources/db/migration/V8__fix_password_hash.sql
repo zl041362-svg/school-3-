@@ -1,0 +1,1 @@
+UPDATE users SET password_hash = '$2a$10$el5avesZi5gi70PKeUBILOhpE0xDSz0XRyZw8lMbf4RKMaYUl80Gq' WHERE phone IN ('13800000000', '13900000000', '13600000000');

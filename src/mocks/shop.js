@@ -1,0 +1,55 @@
+export const mockProducts = [
+  {
+    id: 101,
+    name: '五常有机大米',
+    region: '黑龙江',
+    category: '粮油',
+    price: 28,
+    stock: 120,
+    summary: '新米直供，适合家庭日常主食采购。',
+    description: '基地直采，支持批量采购与溯源展示。',
+  },
+  {
+    id: 102,
+    name: '安溪铁观音',
+    region: '福建',
+    category: '茶饮',
+    price: 66,
+    stock: 0,
+    summary: '春茶批次，适合礼盒与零售。',
+    description: '展示茶叶等级、产地证书、发货时效等信息。',
+  },
+  {
+    id: 103,
+    name: '赣南脐橙',
+    region: '江西',
+    category: '水果',
+    price: 39,
+    stock: 64,
+    summary: '应季鲜果，支持整箱下单。',
+    description: '默认展示果径规格、仓储与冷链说明。',
+  },
+]
+
+export const mockNews = [
+  {
+    id: 201,
+    title: '春耕进度播报',
+    author: '平台农讯组',
+    category: '政策解读',
+    status: 'published',
+    summary: '聚焦当前主产区春耕节奏与供给情况。',
+    content: '这里将展示资讯正文、标签、发布时间以及相关农技建议。',
+    publishedAt: '2026-05-15 09:30',
+  },
+  {
+    id: 202,
+    title: '本周农产品价格观察',
+    author: '运营中心',
+    category: '市场行情',
+    status: 'published',
+    summary: '汇总重点品类价格变化，辅助用户采购决策。',
+    content: '这里将展示行情解读、价格趋势和市场建议。',
+    publishedAt: '2026-05-14 16:20',
+  },
+]
