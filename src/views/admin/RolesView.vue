@@ -48,9 +48,13 @@ async function handleSave() {
 
 async function handleDelete(row) {
   await ElMessageBox.confirm(`确认删除角色「${row.role}」？`, '提示', { type: 'warning' })
-  await deleteAdminRoleApi(row.id)
-  ElMessage.success('角色已删除')
-  moderationStore.hydrateSection('roles')
+  try {
+    await deleteAdminRoleApi(row.id)
+    ElMessage.success('角色已删除')
+    moderationStore.hydrateSection('roles')
+  } catch (err) {
+    ElMessage.error(err?.message || '删除失败')
+  }
 }
 
 async function handleMembersChange(row, value) {

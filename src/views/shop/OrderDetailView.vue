@@ -34,6 +34,7 @@ async function loadOrder() {
     order.value = await orderStore.getDetail(route.params.id)
   } catch {
     order.value = null
+    ElMessage.error('订单详情加载失败')
   } finally {
     loading.value = false
   }

@@ -46,7 +46,7 @@ class ApiFlowIntegrationTest {
     @Test
     void customerTradeFlowShouldWork() throws Exception {
         JsonNode register = registerCustomer("13700000000");
-        String token = login(register.get("phone").asText(), "123456");
+        String token = login(register.get("phone").asText(), "Abc123456");
         mockMvc.perform(post("/api/addresses")
                         .header("Authorization", "Bearer " + token)
                         .contentType(MediaType.APPLICATION_JSON)
@@ -182,7 +182,7 @@ class ApiFlowIntegrationTest {
     @Test
     void customerCannotAccessAdminApis() throws Exception {
         JsonNode customer = registerCustomer("13700000002");
-        String customerToken = login(customer.get("phone").asText(), "123456");
+        String customerToken = login(customer.get("phone").asText(), "Abc123456");
 
         mockMvc.perform(get("/api/admin/users")
                         .header("Authorization", "Bearer " + customerToken))
@@ -193,7 +193,7 @@ class ApiFlowIntegrationTest {
     @Test
     void soldOutProductCannotBeAddedToCart() throws Exception {
         JsonNode customer = registerCustomer("13700000003");
-        String token = login(customer.get("phone").asText(), "123456");
+        String token = login(customer.get("phone").asText(), "Abc123456");
 
         mockMvc.perform(post("/api/cart/items")
                         .header("Authorization", "Bearer " + token)
@@ -209,7 +209,7 @@ class ApiFlowIntegrationTest {
     @Test
     void creatingOrderWithEmptyCartShouldFail() throws Exception {
         JsonNode customer = registerCustomer("13700000007");
-        String token = login(customer.get("phone").asText(), "123456");
+        String token = login(customer.get("phone").asText(), "Abc123456");
 
         mockMvc.perform(post("/api/orders")
                         .header("Authorization", "Bearer " + token)
@@ -227,7 +227,7 @@ class ApiFlowIntegrationTest {
     @Test
     void deletingDefaultAddressShouldPromoteAnotherDefault() throws Exception {
         JsonNode customer = registerCustomer("13700000004");
-        String token = login(customer.get("phone").asText(), "123456");
+        String token = login(customer.get("phone").asText(), "Abc123456");
 
         String defaultAddressResp = mockMvc.perform(post("/api/addresses")
                         .header("Authorization", "Bearer " + token)
@@ -271,7 +271,7 @@ class ApiFlowIntegrationTest {
     @Test
     void orderDetailShouldBeIsolatedByUser() throws Exception {
         JsonNode customerA = registerCustomer("13700000005");
-        String tokenA = login(customerA.get("phone").asText(), "123456");
+        String tokenA = login(customerA.get("phone").asText(), "Abc123456");
 
         mockMvc.perform(post("/api/cart/items")
                         .header("Authorization", "Bearer " + tokenA)
@@ -298,7 +298,7 @@ class ApiFlowIntegrationTest {
         long orderId = objectMapper.readTree(orderResp).path("id").asLong();
 
         JsonNode customerB = registerCustomer("13700000006");
-        String tokenB = login(customerB.get("phone").asText(), "123456");
+        String tokenB = login(customerB.get("phone").asText(), "Abc123456");
 
         mockMvc.perform(get("/api/orders/" + orderId)
                         .header("Authorization", "Bearer " + tokenB))
@@ -309,7 +309,7 @@ class ApiFlowIntegrationTest {
     @Test
     void profileShouldWorkAfterLogin() throws Exception {
         JsonNode customer = registerCustomer("13700000008");
-        String token = login(customer.get("phone").asText(), "123456");
+        String token = login(customer.get("phone").asText(), "Abc123456");
 
         mockMvc.perform(get("/api/auth/profile")
                         .header("Authorization", "Bearer " + token))
@@ -334,7 +334,7 @@ class ApiFlowIntegrationTest {
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(Map.of(
                                 "phone", customer.get("phone").asText(),
-                                "password", "123456"
+                                "password", "Abc123456"
                         ))))
                 .andExpect(status().isBadRequest())
                 .andExpect(jsonPath("$.code").value(4030))
@@ -383,7 +383,7 @@ class ApiFlowIntegrationTest {
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(Map.of(
                                 "phone", "",
-                                "password", "123456",
+                                "password", "Abc123456",
                                 "role", "customer"
                         ))))
                 .andExpect(status().isBadRequest())
@@ -391,7 +391,7 @@ class ApiFlowIntegrationTest {
                 .andExpect(jsonPath("$.message").isString());
 
         JsonNode customer = registerCustomer("13700000010");
-        String customerToken = login(customer.get("phone").asText(), "123456");
+        String customerToken = login(customer.get("phone").asText(), "Abc123456");
         mockMvc.perform(get("/api/admin/logs")
                         .header("Authorization", "Bearer " + customerToken))
                 .andExpect(status().isForbidden())
@@ -402,7 +402,7 @@ class ApiFlowIntegrationTest {
     @Test
     void cartAndAddressCrudShouldWorkForLoggedInUser() throws Exception {
         JsonNode customer = registerCustomer("13700000011");
-        String token = login(customer.get("phone").asText(), "123456");
+        String token = login(customer.get("phone").asText(), "Abc123456");
 
         String cartItemResponse = mockMvc.perform(post("/api/cart/items")
                         .header("Authorization", "Bearer " + token)
@@ -465,7 +465,7 @@ class ApiFlowIntegrationTest {
     @Test
     void cartAndAddressShouldBeIsolatedByUser() throws Exception {
         JsonNode userA = registerCustomer("13700000012");
-        String tokenA = login(userA.get("phone").asText(), "123456");
+        String tokenA = login(userA.get("phone").asText(), "Abc123456");
 
         String cartItemResponse = mockMvc.perform(post("/api/cart/items")
                         .header("Authorization", "Bearer " + tokenA)
@@ -496,7 +496,7 @@ class ApiFlowIntegrationTest {
         long addressId = objectMapper.readTree(addressResponse).path("id").asLong();
 
         JsonNode userB = registerCustomer("13700000013");
-        String tokenB = login(userB.get("phone").asText(), "123456");
+        String tokenB = login(userB.get("phone").asText(), "Abc123456");
 
         mockMvc.perform(put("/api/cart/items/" + cartItemId)
                         .header("Authorization", "Bearer " + tokenB)
@@ -588,7 +588,7 @@ class ApiFlowIntegrationTest {
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(Map.of(
                                 "phone", phone,
-                                "password", "123456",
+                                "password", "Abc123456",
                                 "role", "customer"
                         ))))
                 .andExpect(status().isOk())

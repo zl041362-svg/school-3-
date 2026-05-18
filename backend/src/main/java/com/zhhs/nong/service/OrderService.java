@@ -20,6 +20,9 @@ import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
+
+import com.zhhs.nong.common.PageUtils;
 
 @Service
 public class OrderService {
@@ -41,13 +44,11 @@ public class OrderService {
 
     @Transactional(readOnly = true)
     public Map<String, Object> getOrders(Long userId, Integer page, Integer pageSize) {
-        int safePage = page == null || page < 1 ? 1 : page;
-        int safePageSize = pageSize == null || pageSize < 1 ? 10 : Math.min(pageSize, 100);
         List<Order> all = orderMapper.selectList(new LambdaQueryWrapper<Order>()
                 .eq(Order::getUserId, userId)
                 .orderByDesc(Order::getId));
-        List<Order> items = slice(all, safePage, safePageSize);
-        return pageResponse(items, all.size(), safePage, safePageSize);
+        List<Order> items = PageUtils.slice(all, page, pageSize, 10);
+        return PageUtils.pageResponse(items, all.size(), page, pageSize, 10);
     }
 
     @Transactional(readOnly = true)
@@ -72,12 +73,19 @@ public class OrderService {
             throw new BizException(4005, "cart is empty");
         }
 
-        List<OrderItem> orderItems = new ArrayList<>();
+        List<Long> productIds = lines.stream().map(LineItem::productId).distinct().collect(Collectors.toList());
+        Map<Long, Product> productMap = productMapper.selectBatchIds(productIds).stream()
+                .collect(Collectors.toMap(Product::getId, p -> p));
+
         BigDecimal total = BigDecimal.ZERO;
         List<Product> updatedProducts = new ArrayList<>();
+        List<OrderItem> orderItems = new ArrayList<>();
 
         for (LineItem line : lines) {
-            Product product = requireProduct(line.productId());
+            Product product = productMap.get(line.productId());
+            if (product == null) {
+                throw new BizException(4041, "product not found");
+            }
             Integer stockObj = product.getStock();
             if (stockObj == null || stockObj <= 0) {
                 throw new BizException(4006, "insufficient stock for product " + product.getName());
@@ -163,14 +171,6 @@ public class OrderService {
         return lines;
     }
 
-    private Product requireProduct(Long productId) {
-        Product product = productMapper.selectById(productId);
-        if (product == null) {
-            throw new BizException(4041, "product not found");
-        }
-        return product;
-    }
-
     private int normalizeQty(int qty, int stock) {
         if (qty < 1) {
             return 1;
@@ -179,21 +179,6 @@ public class OrderService {
             return Math.min(qty, stock);
         }
         return qty;
-    }
-
-    private <T> List<T> slice(List<T> items, int page, int pageSize) {
-        int from = Math.min((page - 1) * pageSize, items.size());
-        int to = Math.min(from + pageSize, items.size());
-        return new ArrayList<>(items.subList(from, to));
-    }
-
-    private Map<String, Object> pageResponse(List<Order> items, int total, int page, int pageSize) {
-        Map<String, Object> result = new LinkedHashMap<>();
-        result.put("items", items);
-        result.put("total", total);
-        result.put("page", page);
-        result.put("pageSize", pageSize);
-        return result;
     }
 
     private record LineItem(Long productId, Integer qty) {

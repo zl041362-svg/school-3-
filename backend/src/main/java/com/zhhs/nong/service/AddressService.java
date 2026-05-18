@@ -120,28 +120,22 @@ public class AddressService {
     }
 
     private void clearDefaults(Long userId) {
-        List<Address> addresses = addressMapper.selectList(new LambdaQueryWrapper<Address>()
-                .eq(Address::getUserId, userId));
-        for (Address address : addresses) {
-            if (address.getIsDefault() != null && address.getIsDefault() == 1) {
-                address.setIsDefault(0);
-                address.setUpdatedAt(LocalDateTime.now());
-                addressMapper.updateById(address);
-            }
-        }
+        Address addr = new Address();
+        addr.setIsDefault(0);
+        addr.setUpdatedAt(LocalDateTime.now());
+        addressMapper.update(addr, new LambdaQueryWrapper<Address>()
+                .eq(Address::getUserId, userId)
+                .eq(Address::getIsDefault, 1));
     }
 
     private void clearDefaults(Long userId, Long exceptId) {
-        List<Address> addresses = addressMapper.selectList(new LambdaQueryWrapper<Address>()
+        Address addr = new Address();
+        addr.setIsDefault(0);
+        addr.setUpdatedAt(LocalDateTime.now());
+        addressMapper.update(addr, new LambdaQueryWrapper<Address>()
                 .eq(Address::getUserId, userId)
-                .ne(Address::getId, exceptId));
-        for (Address address : addresses) {
-            if (address.getIsDefault() != null && address.getIsDefault() == 1) {
-                address.setIsDefault(0);
-                address.setUpdatedAt(LocalDateTime.now());
-                addressMapper.updateById(address);
-            }
-        }
+                .ne(Address::getId, exceptId)
+                .eq(Address::getIsDefault, 1));
     }
 
     private Map<String, Object> listResponse(List<Address> items) {
@@ -151,6 +145,8 @@ public class AddressService {
         Map<String, Object> result = new LinkedHashMap<>();
         result.put("items", sorted);
         result.put("total", sorted.size());
+        result.put("page", 1);
+        result.put("pageSize", sorted.size());
         return result;
     }
 }

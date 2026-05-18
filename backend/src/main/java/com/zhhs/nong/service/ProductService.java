@@ -7,6 +7,9 @@ import com.zhhs.nong.model.Product;
 import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
 
+import com.zhhs.nong.common.PageUtils;
+
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -20,9 +23,6 @@ public class ProductService {
     }
 
     public Map<String, Object> list(String keyword, String category, String region, Integer page, Integer pageSize) {
-        int safePage = page == null || page < 1 ? 1 : page;
-        int safePageSize = pageSize == null || pageSize < 1 ? 10 : Math.min(pageSize, 100);
-
         LambdaQueryWrapper<Product> wrapper = new LambdaQueryWrapper<Product>()
                 .eq(Product::getStatus, "published")
                 .orderByDesc(Product::getId);
@@ -38,16 +38,8 @@ public class ProductService {
         }
 
         List<Product> all = productMapper.selectList(wrapper);
-        int total = all.size();
-        int from = Math.min((safePage - 1) * safePageSize, total);
-        int to = Math.min(from + safePageSize, total);
-
-        return Map.of(
-                "items", all.subList(from, to),
-                "total", total,
-                "page", safePage,
-                "pageSize", safePageSize
-        );
+        List<Product> items = PageUtils.slice(all, page, pageSize, 20);
+        return PageUtils.pageResponse(items, all.size(), page, pageSize, 20);
     }
 
     public Product detail(Long id) {

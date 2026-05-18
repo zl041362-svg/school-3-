@@ -8,6 +8,7 @@ import com.zhhs.nong.dto.merchant.SubmitVerificationRequest;
 import com.zhhs.nong.mapper.FarmerVerificationMapper;
 import com.zhhs.nong.mapper.NewsMapper;
 import com.zhhs.nong.mapper.NewsReviewMapper;
+import com.zhhs.nong.mapper.OrderItemMapper;
 import com.zhhs.nong.mapper.OrderMapper;
 import com.zhhs.nong.mapper.ProductMapper;
 import com.zhhs.nong.mapper.ProductReviewMapper;
@@ -16,12 +17,15 @@ import com.zhhs.nong.model.FarmerVerification;
 import com.zhhs.nong.model.News;
 import com.zhhs.nong.model.NewsReview;
 import com.zhhs.nong.model.Order;
+import com.zhhs.nong.model.OrderItem;
 import com.zhhs.nong.model.Product;
 import com.zhhs.nong.model.ProductReview;
 import com.zhhs.nong.model.User;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.StringUtils;
+
+import com.zhhs.nong.common.PageUtils;
 
 import java.time.LocalDateTime;
 import java.util.ArrayList;
@@ -38,6 +42,7 @@ public class MerchantService {
     private final NewsMapper newsMapper;
     private final NewsReviewMapper newsReviewMapper;
     private final OrderMapper orderMapper;
+    private final OrderItemMapper orderItemMapper;
     private final UserMapper userMapper;
 
     public MerchantService(FarmerVerificationMapper farmerVerificationMapper,
@@ -46,6 +51,7 @@ public class MerchantService {
                            NewsMapper newsMapper,
                            NewsReviewMapper newsReviewMapper,
                            OrderMapper orderMapper,
+                           OrderItemMapper orderItemMapper,
                            UserMapper userMapper) {
         this.farmerVerificationMapper = farmerVerificationMapper;
         this.productMapper = productMapper;
@@ -53,6 +59,7 @@ public class MerchantService {
         this.newsMapper = newsMapper;
         this.newsReviewMapper = newsReviewMapper;
         this.orderMapper = orderMapper;
+        this.orderItemMapper = orderItemMapper;
         this.userMapper = userMapper;
     }
 
@@ -90,9 +97,19 @@ public class MerchantService {
                 .eq(Product::getUserId, userId));
         long newsCount = newsMapper.selectCount(new LambdaQueryWrapper<News>()
                 .eq(News::getUserId, userId));
-        long pendingOrderCount = orderMapper.selectCount(new LambdaQueryWrapper<Order>()
-                .eq(Order::getUserId, userId)
-                .eq(Order::getStatus, "pending_shipment"));
+
+        List<Long> productIds = productMapper.selectList(new LambdaQueryWrapper<Product>()
+                .eq(Product::getUserId, userId).select(Product::getId)).stream().map(Product::getId).toList();
+        long pendingOrderCount = 0;
+        if (!productIds.isEmpty()) {
+            List<Long> orderIds = orderItemMapper.selectList(new LambdaQueryWrapper<OrderItem>()
+                    .in(OrderItem::getProductId, productIds).select(OrderItem::getOrderId)).stream()
+                    .map(OrderItem::getOrderId).distinct().toList();
+            if (!orderIds.isEmpty()) {
+                pendingOrderCount = orderMapper.selectCount(new LambdaQueryWrapper<Order>()
+                        .in(Order::getId, orderIds).eq(Order::getStatus, "pending_shipment"));
+            }
+        }
 
         Map<String, Object> result = new LinkedHashMap<>();
         result.put("productCount", productCount);
@@ -106,7 +123,7 @@ public class MerchantService {
         List<Product> all = productMapper.selectList(new LambdaQueryWrapper<Product>()
                 .eq(Product::getUserId, userId)
                 .orderByDesc(Product::getId));
-        return pageResponse(slice(all, page, pageSize), all.size(), page, pageSize);
+        return PageUtils.pageResponse(PageUtils.slice(all, page, pageSize, 20), all.size(), page, pageSize, 20);
     }
 
     @Transactional
@@ -175,6 +192,7 @@ public class MerchantService {
     public void deleteProduct(Long userId, Long productId) {
         requireProduct(userId, productId);
         productMapper.deleteById(productId);
+        productReviewMapper.delete(new LambdaQueryWrapper<ProductReview>().eq(ProductReview::getProductId, productId));
     }
 
     @Transactional(readOnly = true)
@@ -188,7 +206,7 @@ public class MerchantService {
         }
 
         List<News> all = newsMapper.selectList(wrapper);
-        return pageResponse(slice(all, page, pageSize), all.size(), page, pageSize);
+        return PageUtils.pageResponse(PageUtils.slice(all, page, pageSize, 20), all.size(), page, pageSize, 20);
     }
 
     @Transactional
@@ -245,6 +263,53 @@ public class MerchantService {
     public void deleteNews(Long userId, Long newsId) {
         requireNews(userId, newsId);
         newsMapper.deleteById(newsId);
+        newsReviewMapper.delete(new LambdaQueryWrapper<NewsReview>().eq(NewsReview::getNewsId, newsId));
+    }
+
+    @Transactional(readOnly = true)
+    public Map<String, Object> getMerchantOrders(Long userId, Integer page, Integer pageSize) {
+        List<Long> productIds = productMapper.selectList(new LambdaQueryWrapper<Product>()
+                .eq(Product::getUserId, userId).select(Product::getId)).stream().map(Product::getId).toList();
+        if (productIds.isEmpty()) {
+            return PageUtils.pageResponse(List.of(), 0, page, pageSize, 20);
+        }
+        List<Long> orderIds = orderItemMapper.selectList(new LambdaQueryWrapper<OrderItem>()
+                .in(OrderItem::getProductId, productIds).select(OrderItem::getOrderId)).stream()
+                .map(OrderItem::getOrderId).distinct().toList();
+        if (orderIds.isEmpty()) {
+            return PageUtils.pageResponse(List.of(), 0, page, pageSize, 20);
+        }
+        List<Order> all = orderMapper.selectList(new LambdaQueryWrapper<Order>()
+                .in(Order::getId, orderIds).orderByDesc(Order::getId));
+        return PageUtils.pageResponse(PageUtils.slice(all, page, pageSize, 20), all.size(), page, pageSize, 20);
+    }
+
+    @Transactional
+    public Order shipOrder(Long userId, Long orderId, String logistics) {
+        List<Long> productIds = productMapper.selectList(new LambdaQueryWrapper<Product>()
+                .eq(Product::getUserId, userId).select(Product::getId)).stream().map(Product::getId).toList();
+        if (productIds.isEmpty()) {
+            throw new BizException(4041, "no products found");
+        }
+        List<Long> orderProductIds = orderItemMapper.selectList(new LambdaQueryWrapper<OrderItem>()
+                .eq(OrderItem::getOrderId, orderId).select(OrderItem::getProductId)).stream()
+                .map(OrderItem::getProductId).toList();
+        boolean owns = orderProductIds.stream().anyMatch(productIds::contains);
+        if (!owns) {
+            throw new BizException(4045, "order not found");
+        }
+        Order order = orderMapper.selectById(orderId);
+        if (order == null) {
+            throw new BizException(4045, "order not found");
+        }
+        if (!"pending_shipment".equals(order.getStatus())) {
+            throw new BizException(4007, "order status must be pending_shipment");
+        }
+        order.setStatus("shipped");
+        order.setLogistics(logistics);
+        order.setUpdatedAt(LocalDateTime.now());
+        orderMapper.updateById(order);
+        return order;
     }
 
     private Product requireProduct(Long userId, Long productId) {
@@ -265,23 +330,6 @@ public class MerchantService {
             throw new BizException(4042, "news not found");
         }
         return news;
-    }
-
-    private <T> List<T> slice(List<T> items, Integer page, Integer pageSize) {
-        int safePage = page == null || page < 1 ? 1 : page;
-        int safePageSize = pageSize == null || pageSize < 1 ? 20 : Math.min(pageSize, 100);
-        int from = Math.min((safePage - 1) * safePageSize, items.size());
-        int to = Math.min(from + safePageSize, items.size());
-        return new ArrayList<>(items.subList(from, to));
-    }
-
-    private Map<String, Object> pageResponse(List<?> items, int total, Integer page, Integer pageSize) {
-        Map<String, Object> result = new LinkedHashMap<>();
-        result.put("items", items);
-        result.put("total", total);
-        result.put("page", page == null || page < 1 ? 1 : page);
-        result.put("pageSize", pageSize == null || pageSize < 1 ? 20 : Math.min(pageSize, 100));
-        return result;
     }
 }
 

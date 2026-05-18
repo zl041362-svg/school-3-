@@ -51,7 +51,7 @@ async function handleRegister() {
   if (!valid) return
   loading.value = true
   try {
-    const { confirmPassword, ...payload } = form
+    const payload = { phone: form.phone, password: form.password, role: form.role }
     await authStore.register(payload)
     ElMessage.success('注册成功，请登录后完成农户认证即可发布商品')
     router.push('/auth/login')

@@ -132,7 +132,7 @@ onMounted(loadDashboard)
         </el-card>
       </el-col>
       <el-col :md="8" :sm="24" style="margin-bottom: 12px">
-        <el-card class="stat-card" shadow="hover" @click="router.push('/orders')">
+        <el-card class="stat-card" shadow="hover" @click="router.push('/merchant/orders')">
           <div v-loading="loading" class="stat-num">{{ stats.pendingOrderCount }}</div>
           <div class="stat-label">待处理订单</div>
         </el-card>
@@ -151,7 +151,7 @@ onMounted(loadDashboard)
       <el-space wrap size="large">
         <el-button type="primary" @click="router.push('/merchant/products')">🌾 商品管理</el-button>
         <el-button type="success" @click="router.push('/merchant/news')">📰 资讯管理</el-button>
-        <el-button @click="router.push('/orders')">📦 订单查看</el-button>
+        <el-button @click="router.push('/merchant/orders')">📦 订单管理</el-button>
         <el-button @click="router.push('/merchant/verify')">✅ 身份认证</el-button>
       </el-space>
     </el-card>
@@ -243,7 +243,7 @@ onMounted(loadDashboard)
 .stat-num {
   font-size: 32px;
   font-weight: 700;
-  color: #2e7d32;
+  color: var(--zhhs-primary, #2e7d32);
 }
 .stat-label {
   font-size: 14px;
@@ -252,7 +252,7 @@ onMounted(loadDashboard)
 }
 
 .publish-card {
-  background: linear-gradient(135deg, #2e7d32, #43a047);
+  background: linear-gradient(135deg, var(--zhhs-primary, #2e7d32), #43a047);
   border-radius: 12px;
   padding: 24px 28px;
   display: flex;

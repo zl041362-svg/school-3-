@@ -14,10 +14,10 @@ import org.springframework.transaction.annotation.Transactional;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
-import java.util.Comparator;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 @Service
 public class CartService {
@@ -66,7 +66,8 @@ public class CartService {
             target.setUpdatedAt(LocalDateTime.now());
             cartItemMapper.insert(target);
         }
-        return enrich(target);
+        enrich(target, product);
+        return target;
     }
 
     @Transactional
@@ -80,7 +81,8 @@ public class CartService {
         item.setQty(normalizeQty(request.qty(), stockObj));
         item.setUpdatedAt(LocalDateTime.now());
         cartItemMapper.updateById(item);
-        return enrich(item);
+        enrich(item, product);
+        return item;
     }
 
     @Transactional
@@ -99,27 +101,26 @@ public class CartService {
     }
 
     private List<CartItem> enrich(List<CartItem> items) {
-        List<CartItem> enriched = new ArrayList<>(items.size());
+        if (items.isEmpty()) return items;
+        List<Long> productIds = items.stream().map(CartItem::getProductId).distinct().collect(Collectors.toList());
+        Map<Long, Product> productMap = productMapper.selectBatchIds(productIds).stream()
+                .collect(Collectors.toMap(Product::getId, p -> p));
         for (CartItem item : items) {
-            enriched.add(enrich(item));
+            enrich(item, productMap.get(item.getProductId()));
         }
-        enriched.sort(Comparator.comparingLong(CartItem::getId).reversed());
-        return enriched;
+        return items;
     }
 
-    private CartItem enrich(CartItem item) {
-        Product product = productMapper.selectById(item.getProductId());
+    private void enrich(CartItem item, Product product) {
         if (product == null) {
             item.setName("商品已失效");
             item.setPrice(BigDecimal.ZERO);
             item.setStock(0);
-            return item;
+            return;
         }
-
         item.setName(product.getName());
         item.setPrice(product.getPrice());
         item.setStock(product.getStock());
-        return item;
     }
 
     private Product requireProduct(Long productId) {
@@ -154,6 +155,8 @@ public class CartService {
         Map<String, Object> result = new LinkedHashMap<>();
         result.put("items", items);
         result.put("total", items.size());
+        result.put("page", 1);
+        result.put("pageSize", items.size());
         return result;
     }
 }

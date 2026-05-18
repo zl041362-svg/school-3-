@@ -5,8 +5,8 @@ import org.springframework.boot.context.properties.ConfigurationProperties;
 @ConfigurationProperties(prefix = "app.jwt")
 public class JwtProperties {
 
-    private String secret = "change-me-to-a-safe-secret-change-me-to-a-safe-secret";
-    private long expirationSeconds = 604800;
+    private String secret;
+    private long expirationSeconds = 3600;
 
     public String getSecret() {
         return secret;

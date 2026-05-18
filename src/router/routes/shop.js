@@ -102,7 +102,6 @@ const shopRoutes = [
         meta: {
           title: '农户认证',
           requiresAuth: true,
-          roles: [ROLES.FARMER],
         },
       },
       {
@@ -121,6 +120,16 @@ const shopRoutes = [
         component: () => import('@/views/shop/MerchantNewsView.vue'),
         meta: {
           title: '资讯管理',
+          requiresAuth: true,
+          roles: [ROLES.FARMER],
+        },
+      },
+      {
+        path: 'merchant/orders',
+        name: 'merchant-orders',
+        component: () => import('@/views/shop/MerchantOrdersView.vue'),
+        meta: {
+          title: '订单管理',
           requiresAuth: true,
           roles: [ROLES.FARMER],
         },

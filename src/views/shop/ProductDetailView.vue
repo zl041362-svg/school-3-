@@ -46,8 +46,8 @@ async function handleAddToCart() {
 }
 
 async function handleBuyNow() {
+  buying.value = true
   await handleAddToCart()
-  if (adding.value) return
   router.push('/checkout')
 }
 

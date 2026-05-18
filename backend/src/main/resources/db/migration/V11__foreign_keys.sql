@@ -1,0 +1,9 @@
+ALTER TABLE addresses ADD CONSTRAINT fk_addresses_user FOREIGN KEY (user_id) REFERENCES users(id);
+ALTER TABLE cart_items ADD CONSTRAINT fk_cart_user FOREIGN KEY (user_id) REFERENCES users(id);
+ALTER TABLE cart_items ADD CONSTRAINT fk_cart_product FOREIGN KEY (product_id) REFERENCES products(id);
+ALTER TABLE orders ADD CONSTRAINT fk_orders_user FOREIGN KEY (user_id) REFERENCES users(id);
+ALTER TABLE order_items ADD CONSTRAINT fk_orderitem_order FOREIGN KEY (order_id) REFERENCES orders(id);
+ALTER TABLE order_items ADD CONSTRAINT fk_orderitem_product FOREIGN KEY (product_id) REFERENCES products(id);
+ALTER TABLE farmer_verifications ADD CONSTRAINT fk_verification_user FOREIGN KEY (user_id) REFERENCES users(id);
+ALTER TABLE product_reviews ADD CONSTRAINT fk_review_product FOREIGN KEY (product_id) REFERENCES products(id);
+ALTER TABLE news_reviews ADD CONSTRAINT fk_review_news FOREIGN KEY (news_id) REFERENCES news(id);

@@ -74,7 +74,7 @@ async function handleAddToCart(row) {
     await cartStore.addItem(row, 1)
     ElMessage.success(`${row.name} 已加入购物车`)
   } catch {
-    // error handled by cartStore
+    ElMessage.error('加入购物车失败，请稍后重试')
   } finally {
     addingId.value = null
   }

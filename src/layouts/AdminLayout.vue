@@ -87,7 +87,7 @@ function handleLogout() {
 }
 .admin-menu .el-menu-item:hover,
 .admin-menu .el-menu-item.is-active {
-  background: #2e7d32 !important;
+  background: var(--zhhs-primary, #2e7d32) !important;
   color: #fff;
 }
 .menu-icon {
@@ -105,5 +105,28 @@ function handleLogout() {
   background: #f5f7fa;
   padding: 24px;
   overflow-y: auto;
+}
+
+@media (max-width: 768px) {
+  .admin-aside {
+    width: 64px !important;
+  }
+  .admin-aside .menu-icon {
+    margin-right: 0;
+  }
+  .admin-aside .el-menu-item span:last-child {
+    display: none;
+  }
+  .admin-brand {
+    font-size: 20px;
+    padding: 16px 8px;
+    text-align: center;
+  }
+  .admin-header {
+    padding: 0 12px;
+  }
+  .admin-main {
+    padding: 16px;
+  }
 }
 </style>

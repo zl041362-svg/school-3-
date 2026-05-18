@@ -28,7 +28,7 @@ public class JwtService {
 
         return Jwts.builder()
                 .subject(String.valueOf(userId))
-                .claims(Map.of("role", role, "phone", phone))
+                .claims(Map.of("role", role))
                 .issuedAt(Date.from(now))
                 .expiration(Date.from(expiresAt))
                 .signWith(secretKey)

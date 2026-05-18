@@ -7,6 +7,9 @@ import com.zhhs.nong.model.News;
 import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
 
+import com.zhhs.nong.common.PageUtils;
+
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -20,9 +23,6 @@ public class NewsService {
     }
 
     public Map<String, Object> list(Integer page, Integer pageSize, String category, String keyword) {
-        int safePage = page == null || page < 1 ? 1 : page;
-        int safePageSize = pageSize == null || pageSize < 1 ? 10 : Math.min(pageSize, 100);
-
         LambdaQueryWrapper<News> wrapper = new LambdaQueryWrapper<News>()
                 .eq(News::getStatus, "published")
                 .orderByDesc(News::getPublishedAt);
@@ -36,17 +36,8 @@ public class NewsService {
         }
 
         List<News> all = newsMapper.selectList(wrapper);
-
-        int total = all.size();
-        int from = Math.min((safePage - 1) * safePageSize, total);
-        int to = Math.min(from + safePageSize, total);
-
-        return Map.of(
-                "items", all.subList(from, to),
-                "total", total,
-                "page", safePage,
-                "pageSize", safePageSize
-        );
+        List<News> items = PageUtils.slice(all, page, pageSize, 20);
+        return PageUtils.pageResponse(items, all.size(), page, pageSize, 20);
     }
 
     public News detail(Long id) {

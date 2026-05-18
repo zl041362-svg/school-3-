@@ -110,7 +110,7 @@ onMounted(loadNews)
 }
 .news-header h2 {
   font-size: 22px;
-  color: #2e7d32;
+  color: var(--zhhs-primary, #2e7d32);
   margin: 0 0 12px;
 }
 .category-bar {

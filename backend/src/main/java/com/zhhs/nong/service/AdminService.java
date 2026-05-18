@@ -27,11 +27,14 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.StringUtils;
 
+import com.zhhs.nong.common.PageUtils;
+
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 @Service
 public class AdminService {
@@ -70,63 +73,56 @@ public class AdminService {
     public Map<String, Object> getFarmerVerifications(Integer page, Integer pageSize) {
         List<FarmerVerification> all = farmerVerificationMapper.selectList(new LambdaQueryWrapper<FarmerVerification>()
                 .orderByDesc(FarmerVerification::getId));
-        return pageResponse(slice(all, page, pageSize), all.size(), page, pageSize);
+        return PageUtils.pageResponse(PageUtils.slice(all, page, pageSize, 20), all.size(), page, pageSize, 20);
     }
 
     @Transactional(readOnly = true)
     public Map<String, Object> getProductReviews(Integer page, Integer pageSize) {
         List<ProductReview> all = productReviewMapper.selectList(new LambdaQueryWrapper<ProductReview>()
                 .orderByDesc(ProductReview::getId));
-        return pageResponse(slice(all, page, pageSize), all.size(), page, pageSize);
+        return PageUtils.pageResponse(PageUtils.slice(all, page, pageSize, 20), all.size(), page, pageSize, 20);
     }
 
     @Transactional(readOnly = true)
     public Map<String, Object> getNewsReviews(Integer page, Integer pageSize) {
         List<NewsReview> all = newsReviewMapper.selectList(new LambdaQueryWrapper<NewsReview>()
                 .orderByDesc(NewsReview::getId));
-        return pageResponse(slice(all, page, pageSize), all.size(), page, pageSize);
+        return PageUtils.pageResponse(PageUtils.slice(all, page, pageSize, 20), all.size(), page, pageSize, 20);
     }
 
     @Transactional(readOnly = true)
     public Map<String, Object> getProducts(Integer page, Integer pageSize) {
         List<Product> all = productMapper.selectList(new LambdaQueryWrapper<Product>()
                 .orderByDesc(Product::getId));
-        return pageResponse(slice(all, page, pageSize), all.size(), page, pageSize);
+        return PageUtils.pageResponse(PageUtils.slice(all, page, pageSize, 20), all.size(), page, pageSize, 20);
     }
 
     @Transactional(readOnly = true)
     public Map<String, Object> getNews(Integer page, Integer pageSize) {
         List<News> all = newsMapper.selectList(new LambdaQueryWrapper<News>()
                 .orderByDesc(News::getId));
-        return pageResponse(slice(all, page, pageSize), all.size(), page, pageSize);
+        return PageUtils.pageResponse(PageUtils.slice(all, page, pageSize, 20), all.size(), page, pageSize, 20);
     }
 
     @Transactional(readOnly = true)
     public Map<String, Object> getUsers(Integer page, Integer pageSize) {
         List<User> all = userMapper.selectList(new LambdaQueryWrapper<User>()
                 .orderByDesc(User::getId));
-        return pageResponse(slice(all, page, pageSize), all.size(), page, pageSize);
+        return PageUtils.pageResponse(PageUtils.slice(all, page, pageSize, 20), all.size(), page, pageSize, 20);
     }
 
     @Transactional(readOnly = true)
     public Map<String, Object> getRoles(Integer page, Integer pageSize) {
         List<Role> all = roleMapper.selectList(new LambdaQueryWrapper<Role>()
                 .orderByDesc(Role::getId));
-        return pageResponse(slice(all, page, pageSize), all.size(), page, pageSize);
+        return PageUtils.pageResponse(PageUtils.slice(all, page, pageSize, 20), all.size(), page, pageSize, 20);
     }
 
     @Transactional(readOnly = true)
     public Map<String, Object> getPermissions(Integer page, Integer pageSize) {
         List<Permission> all = permissionMapper.selectList(new LambdaQueryWrapper<Permission>()
                 .orderByDesc(Permission::getId));
-        return pageResponse(slice(all, page, pageSize), all.size(), page, pageSize);
-    }
-
-    @Transactional(readOnly = true)
-    public Map<String, Object> getLogs(Integer page, Integer pageSize) {
-        List<OperationLog> all = operationLogMapper.selectList(new LambdaQueryWrapper<OperationLog>()
-                .orderByDesc(OperationLog::getId));
-        return pageResponse(slice(all, page, pageSize), all.size(), page, pageSize);
+        return PageUtils.pageResponse(PageUtils.slice(all, page, pageSize, 20), all.size(), page, pageSize, 20);
     }
 
     @Transactional
@@ -346,14 +342,18 @@ public class AdminService {
 
     @Transactional
     public void batchReviewProducts(BatchReviewRequest request, String operator) {
-        for (Long id : request.ids()) {
-            ProductReview review = requireProductReview(id);
+        List<ProductReview> reviews = productReviewMapper.selectBatchIds(request.ids());
+        List<Long> productIds = reviews.stream().map(ProductReview::getProductId).collect(Collectors.toList());
+        Map<Long, Product> productMap = productMapper.selectBatchIds(productIds).stream()
+                .collect(Collectors.toMap(Product::getId, p -> p));
+
+        for (ProductReview review : reviews) {
             review.setStatus(request.approved() ? "approved" : "rejected");
             review.setReason(request.reason());
             review.setUpdatedAt(LocalDateTime.now());
             productReviewMapper.updateById(review);
 
-            Product product = productMapper.selectById(review.getProductId());
+            Product product = productMap.get(review.getProductId());
             if (product != null) {
                 product.setStatus(request.approved() ? "published" : "rejected");
                 product.setUpdatedAt(LocalDateTime.now());
@@ -365,14 +365,18 @@ public class AdminService {
 
     @Transactional
     public void batchReviewNews(BatchReviewRequest request, String operator) {
-        for (Long id : request.ids()) {
-            NewsReview review = requireNewsReview(id);
+        List<NewsReview> reviews = newsReviewMapper.selectBatchIds(request.ids());
+        List<Long> newsIds = reviews.stream().map(NewsReview::getNewsId).collect(Collectors.toList());
+        Map<Long, News> newsMap = newsMapper.selectBatchIds(newsIds).stream()
+                .collect(Collectors.toMap(News::getId, n -> n));
+
+        for (NewsReview review : reviews) {
             review.setStatus(request.approved() ? "approved" : "rejected");
             review.setReason(request.reason());
             review.setUpdatedAt(LocalDateTime.now());
             newsReviewMapper.updateById(review);
 
-            News news = newsMapper.selectById(review.getNewsId());
+            News news = newsMap.get(review.getNewsId());
             if (news != null) {
                 news.setStatus(request.approved() ? "published" : "rejected");
                 if (request.approved() && news.getPublishedAt() == null) {
@@ -387,8 +391,12 @@ public class AdminService {
 
     @Transactional
     public void batchReviewFarmerVerifications(BatchReviewRequest request, String operator) {
-        for (Long id : request.ids()) {
-            FarmerVerification verification = requireFarmerVerification(id);
+        List<FarmerVerification> verifications = farmerVerificationMapper.selectBatchIds(request.ids());
+        List<Long> userIds = verifications.stream().map(FarmerVerification::getUserId).filter(uid -> uid != null).collect(Collectors.toList());
+        Map<Long, User> userMap = userIds.isEmpty() ? Map.of() : userMapper.selectBatchIds(userIds).stream()
+                .collect(Collectors.toMap(User::getId, u -> u));
+
+        for (FarmerVerification verification : verifications) {
             verification.setStatus(request.approved() ? "approved" : "rejected");
             verification.setReason(request.reason());
             verification.setReviewedAt(LocalDateTime.now());
@@ -396,7 +404,7 @@ public class AdminService {
             farmerVerificationMapper.updateById(verification);
 
             if (request.approved() && verification.getUserId() != null) {
-                User user = userMapper.selectById(verification.getUserId());
+                User user = userMap.get(verification.getUserId());
                 if (user != null) {
                     user.setRole("farmer");
                     user.setStatus("active");
@@ -427,7 +435,7 @@ public class AdminService {
         }
 
         List<OperationLog> all = operationLogMapper.selectList(wrapper);
-        return pageResponse(slice(all, page, pageSize), all.size(), page, pageSize);
+        return PageUtils.pageResponse(PageUtils.slice(all, page, pageSize, 20), all.size(), page, pageSize, 20);
     }
 
     @Transactional
@@ -436,6 +444,7 @@ public class AdminService {
         if (r == null) {
             throw new BizException(4046, "role not found");
         }
+        if (roleName != null) r.setRole(roleName);
         if (description != null) r.setDescription(description);
         roleMapper.updateById(r);
         log(operator, "update_role", "编辑角色 " + r.getRole());
@@ -473,24 +482,6 @@ public class AdminService {
         log.setDetail(detail);
         log.setCreatedAt(LocalDateTime.now());
         operationLogMapper.insert(log);
-    }
-
-    private <T> List<T> slice(List<T> items, Integer page, Integer pageSize) {
-        int safePage = page == null || page < 1 ? 1 : page;
-        int safePageSize = pageSize == null || pageSize < 1 ? 20 : Math.min(pageSize, 100);
-        List<T> sorted = new ArrayList<>(items);
-        int from = Math.min((safePage - 1) * safePageSize, sorted.size());
-        int to = Math.min(from + safePageSize, sorted.size());
-        return new ArrayList<>(sorted.subList(from, to));
-    }
-
-    private Map<String, Object> pageResponse(List<?> items, int total, Integer page, Integer pageSize) {
-        Map<String, Object> result = new LinkedHashMap<>();
-        result.put("items", items);
-        result.put("total", total);
-        result.put("page", page == null || page < 1 ? 1 : page);
-        result.put("pageSize", pageSize == null || pageSize < 1 ? 20 : Math.min(pageSize, 100));
-        return result;
     }
 }
 

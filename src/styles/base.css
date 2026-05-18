@@ -150,3 +150,22 @@ a {
     overflow-x: auto;
   }
 }
+
+@media (max-width: 768px) {
+  .page-container {
+    padding: 12px;
+  }
+  .page-title {
+    font-size: 18px;
+  }
+  .shop-main,
+  .admin-main {
+    padding: 12px;
+  }
+  .el-table {
+    font-size: 13px;
+  }
+  .el-table__body-wrapper {
+    overflow-x: auto;
+  }
+}

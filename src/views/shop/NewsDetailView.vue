@@ -111,7 +111,7 @@ onMounted(loadArticle)
   margin-bottom: 20px;
   padding: 12px 16px;
   background: #f8f9fa;
-  border-left: 3px solid #2e7d32;
+  border-left: 3px solid var(--zhhs-primary, #2e7d32);
   border-radius: 4px;
 }
 .article-content {

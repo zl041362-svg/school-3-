@@ -9,6 +9,7 @@ import com.zhhs.nong.model.User;
 import com.zhhs.nong.security.JwtService;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
 import java.util.Map;
@@ -26,6 +27,7 @@ public class AuthService {
         this.jwtService = jwtService;
     }
 
+    @Transactional
     public Map<String, Object> register(RegisterRequest request) {
         User exists = userMapper.selectOne(new LambdaQueryWrapper<User>()
                 .eq(User::getPhone, request.phone()));

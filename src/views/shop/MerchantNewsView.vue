@@ -180,7 +180,10 @@ onMounted(loadNews)
             <el-button text type="danger" @click="handleDelete(scope.row)">删除</el-button>
           </el-space>
         </template>
-      </el-table-column>
+        </el-table-column>
+      <template #empty>
+        <el-empty description="暂无资讯，快去发布吧" />
+      </template>
     </el-table>
 
     <el-dialog v-model="dialogVisible" :title="editingId ? '编辑资讯' : '新增资讯'" width="600px">

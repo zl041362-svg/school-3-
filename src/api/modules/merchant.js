@@ -19,3 +19,7 @@ export const createMerchantNewsApi = (payload) => http.post('/merchant/news', pa
 export const updateMerchantNewsApi = (id, payload) => http.put(`/merchant/news/${id}`, payload)
 
 export const deleteMerchantNewsApi = (id) => http.delete(`/merchant/news/${id}`)
+
+export const getMerchantOrdersApi = (params) => http.get('/merchant/orders', { params })
+
+export const shipOrderApi = (id, logistics) => http.patch(`/merchant/orders/${id}/ship`, { logistics })

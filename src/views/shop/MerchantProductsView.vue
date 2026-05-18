@@ -232,7 +232,10 @@ onMounted(loadProducts)
             <el-button text type="danger" @click="handleDelete(scope.row)">删除</el-button>
           </el-space>
         </template>
-      </el-table-column>
+        </el-table-column>
+      <template #empty>
+        <el-empty description="暂无商品，快去发布吧" />
+      </template>
     </el-table>
 
     <el-dialog v-model="dialogVisible" :title="editingId ? '编辑商品' : '新增商品'" width="560px">

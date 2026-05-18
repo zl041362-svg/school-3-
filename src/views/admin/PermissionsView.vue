@@ -65,9 +65,13 @@ async function handleSave() {
 
 async function handleDelete(row) {
   await ElMessageBox.confirm('确认删除该权限？', '提示', { type: 'warning' })
-  await deleteAdminPermissionApi(row.id)
-  ElMessage.success('权限已删除')
-  moderationStore.hydrateSection('permissions')
+  try {
+    await deleteAdminPermissionApi(row.id)
+    ElMessage.success('权限已删除')
+    moderationStore.hydrateSection('permissions')
+  } catch (err) {
+    ElMessage.error(err?.message || '删除失败')
+  }
 }
 
 onMounted(() => {

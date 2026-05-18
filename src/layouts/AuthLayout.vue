@@ -32,7 +32,7 @@
 .auth-brand {
   flex: 1;
   text-align: center;
-  color: #2e7d32;
+  color: var(--zhhs-primary, #2e7d32);
 }
 .auth-logo {
   font-size: 64px;

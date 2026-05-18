@@ -1,5 +1,5 @@
 <script setup>
-import { reactive, ref } from 'vue'
+import { reactive, ref, computed } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { ElMessage } from 'element-plus'
 import { ROLE_HOME_MAP } from '@/constants/auth'
@@ -10,6 +10,7 @@ const router = useRouter()
 const route = useRoute()
 const loading = ref(false)
 const formRef = ref(null)
+const isDev = computed(() => import.meta.env.DEV)
 
 const form = reactive({
   phone: '',
@@ -35,8 +36,9 @@ async function handleLogin() {
     await authStore.login({ phone: form.phone, password: form.password })
   } catch {
     ElMessage.error('登录失败，请检查账号密码。')
-    loading.value = false
     return
+  } finally {
+    loading.value = false
   }
   const redirect = route.query.redirect
   const path = typeof redirect === 'string' ? redirect : ROLE_HOME_MAP[authStore.role] || '/'
@@ -77,7 +79,7 @@ async function handleLogin() {
       </el-button>
     </el-form>
 
-    <div style="margin-top: 20px; padding: 12px 16px; background: #f5f7fa; border-radius: 8px; font-size: 12px; color: #888; line-height: 1.8">
+    <div v-if="isDev" style="margin-top: 20px; padding: 12px 16px; background: #f5f7fa; border-radius: 8px; font-size: 12px; color: #888; line-height: 1.8">
       <div style="font-weight: 600; color: #666; margin-bottom: 4px">示例账号（种子数据）</div>
       <div>管理员：13800000000 / 12345678</div>
       <div>消费者：13900000000 / 12345678</div>

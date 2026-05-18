@@ -42,7 +42,7 @@ onMounted(refreshAll)
           style="cursor: pointer"
           @click="$router.push(card.path || '/admin')"
         >
-          <div style="font-size: 28px; font-weight: 700; color: #2e7d32">{{ card.value }}</div>
+          <div style="font-size: 28px; font-weight: 700; color: var(--zhhs-primary, #2e7d32)">{{ card.value }}</div>
           <div style="font-size: 14px; color: #666; margin-top: 6px">{{ card.label }}</div>
         </el-card>
       </el-col>

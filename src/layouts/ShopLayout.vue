@@ -116,7 +116,7 @@ function handleLogout() {
 .brand-name {
   font-size: 18px;
   font-weight: 700;
-  color: #2e7d32;
+  color: var(--zhhs-primary, #2e7d32);
   white-space: nowrap;
 }
 .shop-nav {
@@ -137,8 +137,8 @@ function handleLogout() {
 }
 .shop-nav a:hover,
 .shop-nav a.router-link-active {
-  color: #2e7d32;
-  border-bottom-color: #2e7d32;
+  color: var(--zhhs-primary, #2e7d32);
+  border-bottom-color: var(--zhhs-primary, #2e7d32);
 }
 .shop-actions {
   display: flex;
@@ -153,7 +153,7 @@ function handleLogout() {
   padding: 24px;
 }
 .shop-footer {
-  background: #2e7d32;
+  background: var(--zhhs-primary, #2e7d32);
   color: #fff;
   display: flex;
   align-items: center;
@@ -162,5 +162,24 @@ function handleLogout() {
 .footer-inner {
   font-size: 13px;
   opacity: 0.85;
+}
+
+@media (max-width: 768px) {
+  .header-inner {
+    gap: 12px;
+    padding: 0 12px;
+  }
+  .shop-nav {
+    gap: 12px;
+  }
+  .shop-nav a {
+    font-size: 12px;
+  }
+  .shop-actions {
+    gap: 4px;
+  }
+  .shop-main {
+    padding: 16px;
+  }
 }
 </style>

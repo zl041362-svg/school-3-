@@ -30,6 +30,7 @@ const filteredRows = computed(() => {
 const detailVisible = ref(false)
 const detailRow = ref(null)
 const editVisible = ref(false)
+const saving = ref(false)
 const editForm = reactive({ name: '', category: '', region: '', price: '', stock: '', summary: '', description: '', spec: '', qualification: '', farmer: '', status: '' })
 const editingId = ref(null)
 
@@ -61,6 +62,7 @@ function openEdit(row) {
 }
 
 async function handleEditSave() {
+  saving.value = true
   try {
     await updateAdminProductApi(editingId.value, {
       name: editForm.name,
@@ -80,6 +82,8 @@ async function handleEditSave() {
     moderationStore.hydrateSection('products')
   } catch (err) {
     ElMessage.error(err?.message || '更新失败')
+  } finally {
+    saving.value = false
   }
 }
 
@@ -223,7 +227,7 @@ onMounted(() => {
       </el-form>
       <template #footer>
         <el-button @click="editVisible = false">取消</el-button>
-        <el-button type="primary" @click="handleEditSave">保存</el-button>
+        <el-button type="primary" :loading="saving" @click="handleEditSave">保存</el-button>
       </template>
     </el-dialog>
   </PageContainer>

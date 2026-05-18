@@ -206,7 +206,7 @@ onMounted(loadHomeData)
 
 /* Banner */
 .home-banner {
-  background: linear-gradient(135deg, #2e7d32 0%, #43a047 100%);
+  background: linear-gradient(135deg, var(--zhhs-primary, #2e7d32) 0%, #43a047 100%);
   border-radius: 12px;
   padding: 56px 48px;
   margin-bottom: 32px;
@@ -246,7 +246,7 @@ onMounted(loadHomeData)
 .section-header h2 {
   margin: 0;
   font-size: 20px;
-  color: #2e7d32;
+  color: var(--zhhs-primary, #2e7d32);
 }
 
 /* Category */
@@ -370,7 +370,7 @@ onMounted(loadHomeData)
 }
 .news-tag {
   background: #e8f5e9;
-  color: #2e7d32;
+  color: var(--zhhs-primary, #2e7d32);
   border-radius: 6px;
   padding: 4px 10px;
   font-size: 12px;
