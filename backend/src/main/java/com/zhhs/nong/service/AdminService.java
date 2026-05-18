@@ -2,6 +2,9 @@ package com.zhhs.nong.service;
 
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.zhhs.nong.common.exception.BizException;
+import com.zhhs.nong.dto.admin.BatchReviewRequest;
+import com.zhhs.nong.dto.admin.SaveNewsAdminRequest;
+import com.zhhs.nong.dto.admin.SaveProductAdminRequest;
 import com.zhhs.nong.mapper.FarmerVerificationMapper;
 import com.zhhs.nong.mapper.NewsMapper;
 import com.zhhs.nong.mapper.NewsReviewMapper;
@@ -22,6 +25,7 @@ import com.zhhs.nong.model.Role;
 import com.zhhs.nong.model.User;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.util.StringUtils;
 
 import java.time.LocalDateTime;
 import java.util.ArrayList;
@@ -212,6 +216,230 @@ public class AdminService {
         roleMapper.updateById(role);
         log(operator, "update_role_members", "角色 " + role.getRole() + " 成员数更新为 " + members);
         return role;
+    }
+
+    @Transactional
+    public Product updateProduct(Long id, SaveProductAdminRequest request, String operator) {
+        Product product = productMapper.selectById(id);
+        if (product == null) {
+            throw new BizException(4041, "product not found");
+        }
+        product.setName(request.name());
+        if (request.category() != null) product.setCategory(request.category());
+        if (request.region() != null) product.setRegion(request.region());
+        product.setPrice(request.price());
+        product.setStock(request.stock());
+        if (request.summary() != null) product.setSummary(request.summary());
+        if (request.description() != null) product.setDescription(request.description());
+        if (request.spec() != null) product.setSpec(request.spec());
+        if (request.qualification() != null) product.setQualification(request.qualification());
+        if (request.farmer() != null) product.setFarmer(request.farmer());
+        if (request.status() != null) product.setStatus(request.status());
+        product.setUpdatedAt(LocalDateTime.now());
+        productMapper.updateById(product);
+        log(operator, "update_product", "编辑商品 " + id);
+        return product;
+    }
+
+    @Transactional
+    public Product updateProductStatus(Long id, String status, String operator) {
+        Product product = productMapper.selectById(id);
+        if (product == null) {
+            throw new BizException(4041, "product not found");
+        }
+        product.setStatus(status);
+        product.setUpdatedAt(LocalDateTime.now());
+        productMapper.updateById(product);
+        log(operator, "update_product_status", "商品 " + id + " 状态更新为 " + status);
+        return product;
+    }
+
+    @Transactional
+    public News updateNews(Long id, SaveNewsAdminRequest request, String operator) {
+        News news = newsMapper.selectById(id);
+        if (news == null) {
+            throw new BizException(4042, "news not found");
+        }
+        news.setTitle(request.title());
+        if (request.category() != null) news.setCategory(request.category());
+        if (request.summary() != null) news.setSummary(request.summary());
+        if (request.content() != null) news.setContent(request.content());
+        if (request.author() != null) news.setAuthor(request.author());
+        if (request.status() != null) news.setStatus(request.status());
+        news.setUpdatedAt(LocalDateTime.now());
+        newsMapper.updateById(news);
+        log(operator, "update_news", "编辑资讯 " + id);
+        return news;
+    }
+
+    @Transactional
+    public News updateNewsStatus(Long id, String status, String operator) {
+        News news = newsMapper.selectById(id);
+        if (news == null) {
+            throw new BizException(4042, "news not found");
+        }
+        news.setStatus(status);
+        if ("published".equals(status) && news.getPublishedAt() == null) {
+            news.setPublishedAt(LocalDateTime.now());
+        }
+        news.setUpdatedAt(LocalDateTime.now());
+        newsMapper.updateById(news);
+        log(operator, "update_news_status", "资讯 " + id + " 状态更新为 " + status);
+        return news;
+    }
+
+    @Transactional
+    public Permission createPermission(String module, String action, String role, String operator) {
+        Permission permission = new Permission();
+        permission.setModule(module);
+        permission.setAction(action);
+        permission.setRole(role);
+        permissionMapper.insert(permission);
+        log(operator, "create_permission", "新增权限 " + module + "/" + action + " -> " + role);
+        return permission;
+    }
+
+    @Transactional
+    public Permission updatePermission(Long id, String module, String action, String role, String operator) {
+        Permission permission = permissionMapper.selectById(id);
+        if (permission == null) {
+            throw new BizException(4050, "permission not found");
+        }
+        permission.setModule(module);
+        permission.setAction(action);
+        permission.setRole(role);
+        permissionMapper.updateById(permission);
+        log(operator, "update_permission", "编辑权限 " + id);
+        return permission;
+    }
+
+    @Transactional
+    public void deletePermission(Long id, String operator) {
+        Permission permission = permissionMapper.selectById(id);
+        if (permission == null) {
+            throw new BizException(4050, "permission not found");
+        }
+        permissionMapper.deleteById(id);
+        log(operator, "delete_permission", "删除权限 " + id);
+    }
+
+    @Transactional
+    public Role createRole(String role, String description, String operator) {
+        Role r = new Role();
+        r.setRole(role);
+        r.setDescription(description);
+        r.setMembers(0);
+        roleMapper.insert(r);
+        log(operator, "create_role", "新增角色 " + role);
+        return r;
+    }
+
+    @Transactional
+    public void deleteRole(Long id, String operator) {
+        Role r = roleMapper.selectById(id);
+        if (r == null) {
+            throw new BizException(4046, "role not found");
+        }
+        roleMapper.deleteById(id);
+        log(operator, "delete_role", "删除角色 " + r.getRole());
+    }
+
+    @Transactional
+    public void batchReviewProducts(BatchReviewRequest request, String operator) {
+        for (Long id : request.ids()) {
+            ProductReview review = requireProductReview(id);
+            review.setStatus(request.approved() ? "approved" : "rejected");
+            review.setReason(request.reason());
+            review.setUpdatedAt(LocalDateTime.now());
+            productReviewMapper.updateById(review);
+
+            Product product = productMapper.selectById(review.getProductId());
+            if (product != null) {
+                product.setStatus(request.approved() ? "published" : "rejected");
+                product.setUpdatedAt(LocalDateTime.now());
+                productMapper.updateById(product);
+            }
+        }
+        log(operator, "batch_review_products", "批量审核商品 " + request.ids().size() + " 条 -> " + (request.approved() ? "通过" : "驳回"));
+    }
+
+    @Transactional
+    public void batchReviewNews(BatchReviewRequest request, String operator) {
+        for (Long id : request.ids()) {
+            NewsReview review = requireNewsReview(id);
+            review.setStatus(request.approved() ? "approved" : "rejected");
+            review.setReason(request.reason());
+            review.setUpdatedAt(LocalDateTime.now());
+            newsReviewMapper.updateById(review);
+
+            News news = newsMapper.selectById(review.getNewsId());
+            if (news != null) {
+                news.setStatus(request.approved() ? "published" : "rejected");
+                if (request.approved() && news.getPublishedAt() == null) {
+                    news.setPublishedAt(LocalDateTime.now());
+                }
+                news.setUpdatedAt(LocalDateTime.now());
+                newsMapper.updateById(news);
+            }
+        }
+        log(operator, "batch_review_news", "批量审核资讯 " + request.ids().size() + " 条 -> " + (request.approved() ? "通过" : "驳回"));
+    }
+
+    @Transactional
+    public void batchReviewFarmerVerifications(BatchReviewRequest request, String operator) {
+        for (Long id : request.ids()) {
+            FarmerVerification verification = requireFarmerVerification(id);
+            verification.setStatus(request.approved() ? "approved" : "rejected");
+            verification.setReason(request.reason());
+            verification.setReviewedAt(LocalDateTime.now());
+            verification.setUpdatedAt(LocalDateTime.now());
+            farmerVerificationMapper.updateById(verification);
+
+            if (request.approved() && verification.getUserId() != null) {
+                User user = userMapper.selectById(verification.getUserId());
+                if (user != null) {
+                    user.setRole("farmer");
+                    user.setStatus("active");
+                    user.setUpdatedAt(LocalDateTime.now());
+                    userMapper.updateById(user);
+                }
+            }
+        }
+        log(operator, "batch_review_farmers", "批量审核认证 " + request.ids().size() + " 条 -> " + (request.approved() ? "通过" : "驳回"));
+    }
+
+    @Transactional(readOnly = true)
+    public Map<String, Object> getLogs(Integer page, Integer pageSize, String operator, String action, String dateFrom, String dateTo) {
+        LambdaQueryWrapper<OperationLog> wrapper = new LambdaQueryWrapper<OperationLog>()
+                .orderByDesc(OperationLog::getId);
+
+        if (StringUtils.hasText(operator)) {
+            wrapper.eq(OperationLog::getOperator, operator);
+        }
+        if (StringUtils.hasText(action)) {
+            wrapper.eq(OperationLog::getAction, action);
+        }
+        if (StringUtils.hasText(dateFrom)) {
+            wrapper.ge(OperationLog::getCreatedAt, LocalDateTime.parse(dateFrom + "T00:00:00"));
+        }
+        if (StringUtils.hasText(dateTo)) {
+            wrapper.le(OperationLog::getCreatedAt, LocalDateTime.parse(dateTo + "T23:59:59"));
+        }
+
+        List<OperationLog> all = operationLogMapper.selectList(wrapper);
+        return pageResponse(slice(all, page, pageSize), all.size(), page, pageSize);
+    }
+
+    @Transactional
+    public Role updateRole(Long id, String roleName, String description, String operator) {
+        Role r = roleMapper.selectById(id);
+        if (r == null) {
+            throw new BizException(4046, "role not found");
+        }
+        if (description != null) r.setDescription(description);
+        roleMapper.updateById(r);
+        log(operator, "update_role", "编辑角色 " + r.getRole());
+        return r;
     }
 
     private FarmerVerification requireFarmerVerification(Long id) {

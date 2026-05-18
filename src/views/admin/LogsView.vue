@@ -7,18 +7,56 @@ const moderationStore = useAdminModerationStore()
 const rows = computed(() => moderationStore.logs)
 const pagination = computed(() => moderationStore.pagination('logs'))
 const searchKeyword = ref('')
+const filterAction = ref('')
+const dateRange = ref([])
+
+const actionOptions = [
+  'review_farmer_verification', 'review_product', 'review_news',
+  'update_user_status', 'update_role_members', 'update_product',
+  'update_product_status', 'update_news', 'update_news_status',
+  'create_permission', 'update_permission', 'delete_permission',
+  'create_role', 'delete_role', 'update_role',
+  'batch_review_products', 'batch_review_news', 'batch_review_farmers',
+]
 
 const filteredRows = computed(() => {
-  if (!searchKeyword.value) return rows.value
-  return rows.value.filter((l) =>
-    (l.operator || '').includes(searchKeyword.value) ||
-    (l.action || '').includes(searchKeyword.value) ||
-    (l.detail || '').includes(searchKeyword.value)
-  )
+  let list = rows.value
+  if (searchKeyword.value) {
+    list = list.filter((l) =>
+      (l.operator || '').includes(searchKeyword.value) ||
+      (l.action || '').includes(searchKeyword.value) ||
+      (l.detail || '').includes(searchKeyword.value)
+    )
+  }
+  if (filterAction.value) {
+    list = list.filter((l) => l.action === filterAction.value)
+  }
+  if (dateRange.value && dateRange.value.length === 2) {
+    const [start, end] = dateRange.value
+    const startStr = typeof start === 'string' ? start : start.toISOString().slice(0, 10)
+    const endStr = typeof end === 'string' ? end : end.toISOString().slice(0, 10)
+    list = list.filter((l) => {
+      const d = (l.createdAt || '').slice(0, 10)
+      return d >= startStr && d <= endStr
+    })
+  }
+  return list
 })
 
 function handlePageChange(page) {
   moderationStore.hydrateSection('logs', { page })
+}
+
+function refreshWithFilters() {
+  const params = {}
+  if (filterAction.value) params.action = filterAction.value
+  if (dateRange.value && dateRange.value.length === 2) {
+    const start = typeof dateRange.value[0] === 'string' ? dateRange.value[0] : dateRange.value[0].toISOString().slice(0, 10)
+    const end = typeof dateRange.value[1] === 'string' ? dateRange.value[1] : dateRange.value[1].toISOString().slice(0, 10)
+    params.dateFrom = start
+    params.dateTo = end
+  }
+  moderationStore.hydrateSection('logs')
 }
 
 onMounted(() => {
@@ -34,23 +72,25 @@ onMounted(() => {
 
     <el-alert
       v-if="moderationStore.error"
-      type="warning"
-      show-icon
-      :closable="false"
-      :title="moderationStore.error"
-      style="margin-bottom: 16px"
+      type="warning" show-icon :closable="false"
+      :title="moderationStore.error" style="margin-bottom: 16px"
     />
 
-    <div style="display: flex; gap: 12px; margin-bottom: 16px">
-      <el-input v-model="searchKeyword" placeholder="搜索操作人/操作/详情" style="max-width: 300px" clearable />
+    <div style="display: flex; gap: 12px; margin-bottom: 16px; flex-wrap: wrap; align-items: center">
+      <el-input v-model="searchKeyword" placeholder="搜索操作人/操作/详情" style="max-width: 260px" clearable />
+      <el-select v-model="filterAction" placeholder="操作类型" style="width: 180px" clearable>
+        <el-option v-for="a in actionOptions" :key="a" :label="a" :value="a" />
+      </el-select>
+      <el-date-picker v-model="dateRange" type="daterange" range-separator="至" start-placeholder="开始日期" end-placeholder="结束日期" style="width: 260px" />
+      <el-button @click="refreshWithFilters">筛选</el-button>
     </div>
 
     <el-table v-loading="moderationStore.loadingMap?.logs" :data="filteredRows" border>
-      <el-table-column prop="id" label="ID" width="90" />
-      <el-table-column prop="operator" label="操作人" width="140" />
-      <el-table-column prop="action" label="操作类型" width="160" />
+      <el-table-column prop="id" label="ID" width="80" />
+      <el-table-column prop="operator" label="操作人" width="130" />
+      <el-table-column prop="action" label="操作类型" width="200" />
       <el-table-column prop="detail" label="操作详情" />
-      <el-table-column prop="createdAt" label="操作时间" width="200" />
+      <el-table-column prop="createdAt" label="操作时间" width="180" />
       <template #empty>
         <el-empty description="暂无操作日志" />
       </template>
@@ -58,10 +98,8 @@ onMounted(() => {
 
     <div v-if="pagination.total > pagination.pageSize" style="text-align: center; margin-top: 16px">
       <el-pagination
-        :current-page="pagination.page"
-        :page-size="pagination.pageSize"
-        :total="pagination.total"
-        layout="prev, pager, next"
+        :current-page="pagination.page" :page-size="pagination.pageSize"
+        :total="pagination.total" layout="prev, pager, next"
         @current-change="handlePageChange"
       />
     </div>

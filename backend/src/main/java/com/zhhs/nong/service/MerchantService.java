@@ -7,13 +7,17 @@ import com.zhhs.nong.dto.merchant.SaveProductRequest;
 import com.zhhs.nong.dto.merchant.SubmitVerificationRequest;
 import com.zhhs.nong.mapper.FarmerVerificationMapper;
 import com.zhhs.nong.mapper.NewsMapper;
+import com.zhhs.nong.mapper.NewsReviewMapper;
 import com.zhhs.nong.mapper.OrderMapper;
 import com.zhhs.nong.mapper.ProductMapper;
+import com.zhhs.nong.mapper.ProductReviewMapper;
 import com.zhhs.nong.mapper.UserMapper;
 import com.zhhs.nong.model.FarmerVerification;
 import com.zhhs.nong.model.News;
+import com.zhhs.nong.model.NewsReview;
 import com.zhhs.nong.model.Order;
 import com.zhhs.nong.model.Product;
+import com.zhhs.nong.model.ProductReview;
 import com.zhhs.nong.model.User;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -30,18 +34,24 @@ public class MerchantService {
 
     private final FarmerVerificationMapper farmerVerificationMapper;
     private final ProductMapper productMapper;
+    private final ProductReviewMapper productReviewMapper;
     private final NewsMapper newsMapper;
+    private final NewsReviewMapper newsReviewMapper;
     private final OrderMapper orderMapper;
     private final UserMapper userMapper;
 
     public MerchantService(FarmerVerificationMapper farmerVerificationMapper,
                            ProductMapper productMapper,
+                           ProductReviewMapper productReviewMapper,
                            NewsMapper newsMapper,
+                           NewsReviewMapper newsReviewMapper,
                            OrderMapper orderMapper,
                            UserMapper userMapper) {
         this.farmerVerificationMapper = farmerVerificationMapper;
         this.productMapper = productMapper;
+        this.productReviewMapper = productReviewMapper;
         this.newsMapper = newsMapper;
+        this.newsReviewMapper = newsReviewMapper;
         this.orderMapper = orderMapper;
         this.userMapper = userMapper;
     }
@@ -118,6 +128,17 @@ public class MerchantService {
         product.setCreatedAt(LocalDateTime.now());
         product.setUpdatedAt(LocalDateTime.now());
         productMapper.insert(product);
+
+        ProductReview review = new ProductReview();
+        review.setProductId(product.getId());
+        review.setProduct(product.getName());
+        review.setFarmer(product.getFarmer());
+        review.setPrice(product.getPrice());
+        review.setStatus("pending");
+        review.setSubmittedAt(LocalDateTime.now());
+        review.setUpdatedAt(LocalDateTime.now());
+        productReviewMapper.insert(review);
+
         return product;
     }
 
@@ -136,6 +157,17 @@ public class MerchantService {
         product.setStatus("pending");
         product.setUpdatedAt(LocalDateTime.now());
         productMapper.updateById(product);
+
+        ProductReview review = new ProductReview();
+        review.setProductId(product.getId());
+        review.setProduct(product.getName());
+        review.setFarmer(product.getFarmer());
+        review.setPrice(product.getPrice());
+        review.setStatus("pending");
+        review.setSubmittedAt(LocalDateTime.now());
+        review.setUpdatedAt(LocalDateTime.now());
+        productReviewMapper.insert(review);
+
         return product;
     }
 
@@ -173,6 +205,16 @@ public class MerchantService {
         news.setCreatedAt(LocalDateTime.now());
         news.setUpdatedAt(LocalDateTime.now());
         newsMapper.insert(news);
+
+        NewsReview review = new NewsReview();
+        review.setNewsId(news.getId());
+        review.setTitle(news.getTitle());
+        review.setAuthor(news.getAuthor());
+        review.setStatus("pending");
+        review.setSubmittedAt(LocalDateTime.now());
+        review.setUpdatedAt(LocalDateTime.now());
+        newsReviewMapper.insert(review);
+
         return news;
     }
 
@@ -186,6 +228,16 @@ public class MerchantService {
         news.setStatus("pending");
         news.setUpdatedAt(LocalDateTime.now());
         newsMapper.updateById(news);
+
+        NewsReview review = new NewsReview();
+        review.setNewsId(news.getId());
+        review.setTitle(news.getTitle());
+        review.setAuthor(news.getAuthor());
+        review.setStatus("pending");
+        review.setSubmittedAt(LocalDateTime.now());
+        review.setUpdatedAt(LocalDateTime.now());
+        newsReviewMapper.insert(review);
+
         return news;
     }
 
@@ -232,3 +284,4 @@ public class MerchantService {
         return result;
     }
 }
+

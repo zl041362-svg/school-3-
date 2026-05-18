@@ -36,7 +36,7 @@ public class AuthService {
         User user = new User();
         user.setPhone(request.phone());
         user.setPasswordHash(passwordEncoder.encode(request.password()));
-        user.setRole(request.role());
+        user.setRole("customer");
         user.setStatus("active");
         user.setName("User" + request.phone().substring(Math.max(0, request.phone().length() - 4)));
         user.setCreatedAt(LocalDateTime.now());

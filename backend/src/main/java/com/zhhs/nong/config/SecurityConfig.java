@@ -48,8 +48,10 @@ public class SecurityConfig {
                         .requestMatchers("/api/auth/login", "/api/auth/register").permitAll()
                         .requestMatchers("/api/products", "/api/products/*", "/api/news", "/api/news/*").permitAll()
                         .requestMatchers("/api/admin/**").hasRole("ADMIN")
+                        .requestMatchers("/api/merchant/verify").authenticated()
                         .requestMatchers("/api/merchant/**").hasRole("FARMER")
                         .requestMatchers("/api/cart/**", "/api/orders/**", "/api/addresses/**").authenticated()
+                        .anyRequest().authenticated()
                 )
                 .exceptionHandling(exception -> exception
                         .authenticationEntryPoint((request, response, authException) -> {

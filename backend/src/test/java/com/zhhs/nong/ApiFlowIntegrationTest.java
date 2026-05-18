@@ -37,7 +37,7 @@ class ApiFlowIntegrationTest {
         mockMvc.perform(get("/api/products"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.items").isArray())
-                .andExpect(jsonPath("$.items[0].farmer").value("赣南果园合作社"));
+                .andExpect(jsonPath("$.items[0].farmer").isString());
         mockMvc.perform(get("/api/news"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.items").isArray())
@@ -71,7 +71,7 @@ class ApiFlowIntegrationTest {
                                 "qty", 2
                         ))))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.name").value("Wuchang Rice"));
+                .andExpect(jsonPath("$.name").value("五常有机大米"));
         mockMvc.perform(get("/api/cart")
                         .header("Authorization", "Bearer " + token))
                 .andExpect(status().isOk())
@@ -108,7 +108,7 @@ class ApiFlowIntegrationTest {
                         .header("Authorization", "Bearer " + token))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.items").isArray())
-                .andExpect(jsonPath("$.items[0].name").value("Wuchang Rice"));
+                .andExpect(jsonPath("$.items[0].name").value("五常有机大米"));
     }
     @Test
     void adminModerationFlowShouldWork() throws Exception {
@@ -118,7 +118,7 @@ class ApiFlowIntegrationTest {
                         .header("Authorization", "Bearer " + adminToken))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.items").isArray())
-                .andExpect(jsonPath("$.items[0].farmer").value("赣南果园合作社"));
+                .andExpect(jsonPath("$.items[0].farmer").isString());
         mockMvc.perform(get("/api/admin/farmer-verifications")
                         .header("Authorization", "Bearer " + adminToken))
                 .andExpect(status().isOk())

@@ -1,23 +1,35 @@
 package com.zhhs.nong.controller.admin;
 
+import com.zhhs.nong.dto.admin.BatchReviewRequest;
 import com.zhhs.nong.dto.admin.ReviewRequest;
+import com.zhhs.nong.dto.admin.SaveNewsAdminRequest;
+import com.zhhs.nong.dto.admin.SaveProductAdminRequest;
 import com.zhhs.nong.dto.admin.UpdateRoleMembersRequest;
 import com.zhhs.nong.dto.admin.UpdateUserStatusRequest;
 import com.zhhs.nong.model.FarmerVerification;
+import com.zhhs.nong.model.News;
 import com.zhhs.nong.model.NewsReview;
+import com.zhhs.nong.model.OperationLog;
+import com.zhhs.nong.model.Permission;
+import com.zhhs.nong.model.Product;
 import com.zhhs.nong.model.ProductReview;
 import com.zhhs.nong.model.Role;
 import com.zhhs.nong.model.User;
 import com.zhhs.nong.service.AdminService;
 import jakarta.validation.Valid;
 import org.springframework.security.core.Authentication;
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.RestController;
+
+import java.util.Map;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.util.Map;
@@ -117,8 +129,94 @@ public class AdminController {
 
     @GetMapping("/logs")
     public Map<String, Object> logs(@RequestParam(required = false) Integer page,
-                                    @RequestParam(required = false) Integer pageSize) {
-        return adminService.getLogs(page, pageSize);
+                                    @RequestParam(required = false) Integer pageSize,
+                                    @RequestParam(required = false) String operator,
+                                    @RequestParam(required = false) String action,
+                                    @RequestParam(required = false) String dateFrom,
+                                    @RequestParam(required = false) String dateTo) {
+        return adminService.getLogs(page, pageSize, operator, action, dateFrom, dateTo);
+    }
+
+    @PutMapping("/products/{id}")
+    public Product updateProduct(Authentication authentication,
+                                 @PathVariable Long id,
+                                 @Valid @RequestBody SaveProductAdminRequest request) {
+        return adminService.updateProduct(id, request, operator(authentication));
+    }
+
+    @PatchMapping("/products/{id}/status")
+    public Product updateProductStatus(Authentication authentication,
+                                       @PathVariable Long id,
+                                       @RequestBody Map<String, String> body) {
+        return adminService.updateProductStatus(id, body.get("status"), operator(authentication));
+    }
+
+    @PutMapping("/news/{id}")
+    public News updateNews(Authentication authentication,
+                           @PathVariable Long id,
+                           @Valid @RequestBody SaveNewsAdminRequest request) {
+        return adminService.updateNews(id, request, operator(authentication));
+    }
+
+    @PatchMapping("/news/{id}/status")
+    public News updateNewsStatus(Authentication authentication,
+                                 @PathVariable Long id,
+                                 @RequestBody Map<String, String> body) {
+        return adminService.updateNewsStatus(id, body.get("status"), operator(authentication));
+    }
+
+    @PostMapping("/permissions")
+    public Permission createPermission(Authentication authentication,
+                                       @RequestBody Map<String, String> body) {
+        return adminService.createPermission(body.get("module"), body.get("action"), body.get("role"), operator(authentication));
+    }
+
+    @PutMapping("/permissions/{id}")
+    public Permission updatePermission(Authentication authentication,
+                                       @PathVariable Long id,
+                                       @RequestBody Map<String, String> body) {
+        return adminService.updatePermission(id, body.get("module"), body.get("action"), body.get("role"), operator(authentication));
+    }
+
+    @DeleteMapping("/permissions/{id}")
+    public void deletePermission(Authentication authentication, @PathVariable Long id) {
+        adminService.deletePermission(id, operator(authentication));
+    }
+
+    @PostMapping("/roles")
+    public Role createRole(Authentication authentication,
+                           @RequestBody Map<String, String> body) {
+        return adminService.createRole(body.get("role"), body.get("description"), operator(authentication));
+    }
+
+    @DeleteMapping("/roles/{id}")
+    public void deleteRole(Authentication authentication, @PathVariable Long id) {
+        adminService.deleteRole(id, operator(authentication));
+    }
+
+    @PutMapping("/roles/{id}")
+    public Role editRole(Authentication authentication,
+                         @PathVariable Long id,
+                         @RequestBody Map<String, String> body) {
+        return adminService.updateRole(id, body.get("role"), body.get("description"), operator(authentication));
+    }
+
+    @PostMapping("/product-reviews/batch")
+    public void batchReviewProducts(Authentication authentication,
+                                    @Valid @RequestBody BatchReviewRequest request) {
+        adminService.batchReviewProducts(request, operator(authentication));
+    }
+
+    @PostMapping("/news-reviews/batch")
+    public void batchReviewNews(Authentication authentication,
+                                @Valid @RequestBody BatchReviewRequest request) {
+        adminService.batchReviewNews(request, operator(authentication));
+    }
+
+    @PostMapping("/farmer-verifications/batch")
+    public void batchReviewFarmerVerifications(Authentication authentication,
+                                               @Valid @RequestBody BatchReviewRequest request) {
+        adminService.batchReviewFarmerVerifications(request, operator(authentication));
     }
 
     private String operator(Authentication authentication) {

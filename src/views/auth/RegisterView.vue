@@ -53,7 +53,7 @@ async function handleRegister() {
   try {
     const { confirmPassword, ...payload } = form
     await authStore.register(payload)
-    ElMessage.success('注册成功，请登录')
+    ElMessage.success('注册成功，请登录后完成农户认证即可发布商品')
     router.push('/auth/login')
   } catch {
     ElMessage.info('接口暂不可用，注册演示已记录，请跳转登录页。')
