@@ -4,6 +4,7 @@ import {
   getCartApi,
   removeCartItemApi,
   updateCartItemApi,
+  clearCartApi,
 } from '@/api/modules/cart'
 import { mockCartItems } from '@/mocks/transaction'
 
@@ -118,7 +119,12 @@ export const useCartStore = defineStore('cart', {
         throw error
       }
     },
-    clear() {
+    async clear() {
+      try {
+        await clearCartApi()
+      } catch {
+        // ignore - clear local regardless
+      }
       this.items = []
       this.persist()
     },

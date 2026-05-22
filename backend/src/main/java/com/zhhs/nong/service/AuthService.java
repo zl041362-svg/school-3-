@@ -86,5 +86,24 @@ public class AuthService {
                 )
         );
     }
+
+    @Transactional
+    public Map<String, Object> updateProfile(Long userId, String name) {
+        User user = userMapper.selectById(userId);
+        if (user == null) {
+            throw new BizException(4040, "user not found");
+        }
+        user.setName(name);
+        user.setUpdatedAt(LocalDateTime.now());
+        userMapper.updateById(user);
+        return Map.of(
+                "user", Map.of(
+                        "id", user.getId(),
+                        "name", user.getName(),
+                        "phone", user.getPhone(),
+                        "role", user.getRole()
+                )
+        );
+    }
 }
 

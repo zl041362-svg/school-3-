@@ -1,9 +1,10 @@
 <script setup>
 import { computed, onMounted, reactive, ref } from 'vue'
-import { ElMessage } from 'element-plus'
+import { ElMessage, ElMessageBox } from 'element-plus'
 import PageContainer from '@/components/PageContainer.vue'
 import { useAuthStore } from '@/stores/auth'
 import { useAddressStore } from '@/stores/address'
+import { updateProfileApi } from '@/api/modules/auth'
 
 const authStore = useAuthStore()
 const addressStore = useAddressStore()
@@ -20,6 +21,28 @@ const form = reactive({
 
 const addresses = computed(() => addressStore.addresses)
 const isFarmer = computed(() => authStore.role === 'farmer')
+const recentViews = ref([])
+
+const profileDialogVisible = ref(false)
+const profileName = ref('')
+
+function openProfileEdit() {
+  profileName.value = authStore.user?.name || ''
+  profileDialogVisible.value = true
+}
+
+async function saveProfile() {
+  if (!profileName.value.trim()) { ElMessage.warning('请输入用户名'); return }
+  try {
+    const r = await updateProfileApi({ name: profileName.value.trim() })
+    if (authStore.user) authStore.user = r.user
+    localStorage.setItem('AUTH_USER', JSON.stringify(r.user))
+    ElMessage.success('资料已更新')
+    profileDialogVisible.value = false
+  } catch (err) {
+    ElMessage.error(err?.message || '更新失败')
+  }
+}
 
 const rules = {
   receiver: [{ required: true, message: '请输入收货人姓名', trigger: 'blur' }],
@@ -39,6 +62,10 @@ function resetForm() {
 }
 
 function handleCreate() {
+  if (addressStore.count >= 10) {
+    ElMessage.warning('最多添加10个收货地址')
+    return
+  }
   resetForm()
   dialogVisible.value = true
 }
@@ -76,6 +103,7 @@ async function handleSave() {
 
 async function handleRemove(row) {
   try {
+    await ElMessageBox.confirm('确认删除该地址？', '提示', { type: 'warning' })
     await addressStore.removeAddress(row.id)
     ElMessage.success('地址已删除')
   } catch (error) {
@@ -92,8 +120,25 @@ async function handleSetDefault(row) {
   }
 }
 
+const menuItems = computed(() => {
+  const items = [
+    { icon: '📦', label: '我的订单', color: '#409eff', path: '/orders' },
+    { icon: '🛒', label: '购物车', color: '#e6a23c', path: '/cart' },
+    { icon: '⭐', label: '我的评价', color: '#f56c6c', path: '/profile/reviews' },
+    { icon: '❤️', label: '我的收藏', color: '#e040fb', path: '/profile/favorites' },
+  ]
+  if (isFarmer.value) {
+    items.push({ icon: '🌾', label: '商户后台', color: '#67c23a', path: '/merchant' })
+    items.push({ icon: '✅', label: '身份认证', color: '#909399', path: '/merchant/verify' })
+  }
+  return items
+})
+
 onMounted(() => {
   addressStore.hydrate()
+  try { recentViews.value = JSON.parse(localStorage.getItem('ZHHS_RECENT_VIEWS') || '[]') } catch {
+    // ignore parse errors
+  }
 })
 </script>
 
@@ -103,33 +148,41 @@ onMounted(() => {
       <el-button type="primary" @click="handleCreate">新增收货地址</el-button>
     </template>
 
-    <!-- 基础信息 -->
-    <el-card style="margin-bottom: 16px">
-      <template #header>账号信息</template>
-      <el-descriptions border :column="3">
-        <el-descriptions-item label="用户名">{{
-          authStore.user?.name || '用户'
-        }}</el-descriptions-item>
-        <el-descriptions-item label="身份">
-          <el-tag :type="isFarmer ? 'success' : 'primary'">
-            {{ isFarmer ? '农户/经营者' : '消费者' }}
-          </el-tag>
-        </el-descriptions-item>
-        <el-descriptions-item label="收货地址数">{{ addressStore.count }} 个</el-descriptions-item>
-      </el-descriptions>
-    </el-card>
+    <!-- 用户头部 -->
+    <div class="user-header">
+      <div class="user-avatar">👤</div>
+      <div class="user-info">
+        <div class="user-name-row">
+          <span class="user-name">{{ authStore.user?.name || '用户' }}</span>
+          <el-tag :type="isFarmer ? 'success' : 'primary'" size="small">{{ isFarmer ? '农户' : '消费者' }}</el-tag>
+        </div>
+        <div class="user-meta">
+          <span>{{ authStore.user?.phone || '' }}</span>
+          <span>·</span>
+          <span>{{ addressStore.count }} 个收货地址</span>
+        </div>
+      </div>
+      <el-button size="small" plain @click="openProfileEdit">编辑资料</el-button>
+    </div>
 
-    <!-- 快捷入口 -->
-    <el-card style="margin-bottom: 16px">
-      <template #header>快捷功能</template>
-      <el-space wrap>
-        <el-button @click="$router.push('/orders')">我的订单</el-button>
-        <el-button @click="$router.push('/cart')">购物车</el-button>
-        <el-button v-if="isFarmer" type="success" @click="$router.push('/merchant')"
-          >商户后台</el-button
-        >
-        <el-button v-if="isFarmer" @click="$router.push('/merchant/verify')">身份认证</el-button>
-      </el-space>
+    <!-- 功能入口网格 -->
+    <div class="menu-grid">
+      <div v-for="m in menuItems" :key="m.path" class="menu-card" @click="$router.push(m.path)">
+        <div class="menu-icon" :style="{ background: m.color + '15', color: m.color }">{{ m.icon }}</div>
+        <span class="menu-label">{{ m.label }}</span>
+      </div>
+    </div>
+
+    <!-- 最近浏览 -->
+    <el-card v-if="recentViews.length" class="recent-card">
+      <template #header><span>最近浏览</span></template>
+      <div class="recent-scroll">
+        <div v-for="v in recentViews" :key="v.id" class="recent-product" @click="$router.push(`/products/${v.id}`)">
+          <div class="recent-product-icon">🌿</div>
+          <div class="recent-product-name">{{ v.name }}</div>
+          <div class="recent-product-time">{{ v.time?.slice(5) || '' }}</div>
+        </div>
+      </div>
     </el-card>
 
     <!-- 收货地址 -->
@@ -170,11 +223,7 @@ onMounted(() => {
       </el-table>
     </el-card>
 
-    <el-dialog
-      v-model="dialogVisible"
-      :title="editingId ? '编辑收货地址' : '新增收货地址'"
-      width="520px"
-    >
+    <el-dialog v-model="dialogVisible" :title="editingId ? '编辑收货地址' : '新增收货地址'" width="520px">
       <el-form ref="formRef" :model="form" :rules="rules" label-position="top">
         <el-form-item label="收货人姓名" prop="receiver">
           <el-input v-model="form.receiver" placeholder="请输入收货人姓名" />
@@ -183,12 +232,7 @@ onMounted(() => {
           <el-input v-model="form.phone" placeholder="请输入手机号" maxlength="11" />
         </el-form-item>
         <el-form-item label="详细地址" prop="address">
-          <el-input
-            v-model="form.address"
-            type="textarea"
-            :rows="3"
-            placeholder="请输入省市区+详细地址"
-          />
+          <el-input v-model="form.address" type="textarea" :rows="3" placeholder="请输入省市区+详细地址" />
         </el-form-item>
         <el-form-item>
           <el-checkbox v-model="form.isDefault">设为默认地址</el-checkbox>
@@ -201,5 +245,152 @@ onMounted(() => {
         </el-space>
       </template>
     </el-dialog>
+
+    <el-dialog v-model="profileDialogVisible" title="编辑个人资料" width="400px">
+      <el-form label-position="top">
+        <el-form-item label="用户名">
+          <el-input v-model="profileName" placeholder="请输入新的用户名" maxlength="20" />
+        </el-form-item>
+      </el-form>
+      <template #footer>
+        <el-button @click="profileDialogVisible = false">取消</el-button>
+        <el-button type="primary" @click="saveProfile">保存</el-button>
+      </template>
+    </el-dialog>
   </PageContainer>
 </template>
+
+<style scoped>
+.user-header {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+  padding: 24px;
+  background: linear-gradient(135deg, #e8f5e9, #fff);
+  border-radius: 12px;
+  margin-bottom: 20px;
+}
+.user-avatar {
+  width: 56px;
+  height: 56px;
+  border-radius: 50%;
+  background: #c8e6c9;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 28px;
+  flex-shrink: 0;
+}
+.user-info {
+  flex: 1;
+  min-width: 0;
+}
+.user-name-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 4px;
+}
+.user-name {
+  font-size: 20px;
+  font-weight: 700;
+  color: #333;
+}
+.user-meta {
+  display: flex;
+  gap: 8px;
+  color: #888;
+  font-size: 13px;
+}
+
+.menu-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 12px;
+  margin-bottom: 20px;
+}
+.menu-card {
+  background: #fff;
+  border: 1px solid #eee;
+  border-radius: 10px;
+  padding: 20px 16px;
+  text-align: center;
+  cursor: pointer;
+  transition: transform 0.2s, box-shadow 0.2s;
+}
+.menu-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 16px rgba(0,0,0,0.08);
+}
+.menu-icon {
+  width: 44px;
+  height: 44px;
+  border-radius: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 22px;
+  margin: 0 auto 8px;
+}
+.menu-label {
+  font-size: 13px;
+  color: #555;
+}
+
+.recent-card {
+  margin-bottom: 20px;
+}
+.recent-scroll {
+  display: flex;
+  gap: 12px;
+  overflow-x: auto;
+  padding-bottom: 4px;
+}
+.recent-scroll::-webkit-scrollbar { height: 4px; }
+.recent-scroll::-webkit-scrollbar-thumb { background: #ddd; border-radius: 2px; }
+.recent-product {
+  flex-shrink: 0;
+  width: 100px;
+  text-align: center;
+  cursor: pointer;
+  padding: 8px;
+  border-radius: 8px;
+  transition: background 0.2s;
+}
+.recent-product:hover {
+  background: #f5f7fa;
+}
+.recent-product-icon {
+  width: 48px;
+  height: 48px;
+  background: #e8f5e9;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 22px;
+  margin: 0 auto 6px;
+}
+.recent-product-name {
+  font-size: 12px;
+  color: #333;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.recent-product-time {
+  font-size: 11px;
+  color: #bbb;
+  margin-top: 2px;
+}
+
+@media (max-width: 600px) {
+  .menu-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+  .user-header {
+    flex-wrap: wrap;
+    gap: 12px;
+  }
+}
+</style>

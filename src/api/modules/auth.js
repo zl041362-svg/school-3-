@@ -11,3 +11,7 @@ export function registerApi(payload) {
 export function getProfileApi() {
   return http.get('/auth/profile')
 }
+
+export function updateProfileApi(payload) {
+  return http.put('/auth/profile', payload)
+}

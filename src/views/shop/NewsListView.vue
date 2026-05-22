@@ -84,7 +84,7 @@ onMounted(loadNews)
       <el-empty v-if="!newsRows.length" description="暂无资讯内容" />
     </div>
 
-    <div v-if="total > query.pageSize" style="text-align: center; margin-top: 24px">
+    <div v-if="total >= query.pageSize" style="text-align: center; margin-top: 24px">
       <el-pagination
         :current-page="query.page"
         :page-size="query.pageSize"

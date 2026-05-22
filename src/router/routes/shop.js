@@ -134,6 +134,18 @@ const shopRoutes = [
           roles: [ROLES.FARMER],
         },
       },
+      {
+        path: 'profile/reviews',
+        name: 'my-reviews',
+        component: () => import('@/views/shop/MyReviewsView.vue'),
+        meta: { title: '我的评价', requiresAuth: true },
+      },
+      {
+        path: 'profile/favorites',
+        name: 'my-favorites',
+        component: () => import('@/views/shop/MyFavoritesView.vue'),
+        meta: { title: '我的收藏', requiresAuth: true },
+      },
     ],
   },
 ]

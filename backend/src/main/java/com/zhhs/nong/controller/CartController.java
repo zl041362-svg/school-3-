@@ -49,6 +49,11 @@ public class CartController {
         cartService.removeItem(userId(authentication), id);
     }
 
+    @DeleteMapping
+    public void clearCart(Authentication authentication) {
+        cartService.clearCart(userId(authentication));
+    }
+
     private Long userId(Authentication authentication) {
         return Long.parseLong(String.valueOf(authentication.getPrincipal()));
     }

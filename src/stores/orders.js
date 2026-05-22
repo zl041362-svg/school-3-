@@ -65,7 +65,10 @@ export const useOrderStore = defineStore('orders', {
 
       try {
         const result = await getOrderDetailApi(id)
-        return result.order || result.data || result
+        const order = result.order || result.data || result
+        this.orders = this.orders.map((o) => (o.id === order.id ? order : o))
+        this.persist()
+        return order
       } catch (error) {
         this.error = error?.message || '订单详情加载失败'
         throw error

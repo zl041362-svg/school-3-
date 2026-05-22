@@ -21,7 +21,7 @@ const rules = {
   ],
   businessNo: [
     { required: true, message: '请输入营业执照/统一社会信用代码', trigger: 'blur' },
-    { min: 15, message: '统一社会信用代码至少15位', trigger: 'blur' },
+    { min: 18, max: 18, message: '统一社会信用代码须为18位', trigger: 'blur' },
   ],
 }
 

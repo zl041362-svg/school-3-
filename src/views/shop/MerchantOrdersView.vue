@@ -13,8 +13,8 @@ const currentOrderId = ref(null)
 const logisticsInput = ref('')
 
 const statusTabs = ['全部', '待发货', '已发货', '已完成']
-const STATUS_LABEL = { pending_shipment: '待发货', shipped: '已发货', completed: '已完成', cancelled: '已取消' }
-const STATUS_TAG = { pending_shipment: 'warning', shipped: 'primary', completed: 'success', cancelled: 'info' }
+const STATUS_LABEL = { pending_payment: '待支付', pending_shipment: '待发货', shipped: '已发货', completed: '已完成', cancelled: '已取消' }
+const STATUS_TAG = { pending_payment: 'danger', pending_shipment: 'warning', shipped: 'primary', completed: 'success', cancelled: 'info' }
 
 const filteredOrders = computed(() => {
   if (activeStatus.value === '全部') return orders.value

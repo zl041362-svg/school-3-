@@ -6,6 +6,7 @@ import jakarta.validation.Valid;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
@@ -29,5 +30,10 @@ public class AuthController {
     public Map<String, Object> profile(Authentication authentication) {
         Long userId = Long.parseLong(String.valueOf(authentication.getPrincipal()));
         return authService.profile(userId);
+    }
+    @PutMapping("/profile")
+    public Map<String, Object> updateProfile(Authentication authentication, @RequestBody Map<String, String> body) {
+        Long userId = Long.parseLong(String.valueOf(authentication.getPrincipal()));
+        return authService.updateProfile(userId, body.get("name"));
     }
 }

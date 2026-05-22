@@ -1,16 +1,29 @@
 <script setup>
 import { onMounted, ref, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
-import { ElMessage } from 'element-plus'
-import { getNewsDetailApi } from '@/api/modules/news'
+import { ElMessage, ElMessageBox } from 'element-plus'
+import { getNewsDetailApi, toggleFavoriteApi, getFavoriteStatusApi } from '@/api/modules/news'
 import { mockNews } from '@/mocks/shop'
+import { useAuthStore } from '@/stores/auth'
 
 const route = useRoute()
 const router = useRouter()
+const authStore = useAuthStore()
 const loading = ref(false)
 const error = ref('')
 const article = ref(null)
 const isFavorited = ref(false)
+const favoring = ref(false)
+
+function requireLogin() {
+  ElMessageBox.confirm('请先登录后再操作', '提示', {
+    confirmButtonText: '去登录',
+    cancelButtonText: '取消',
+    type: 'warning',
+  }).then(() => {
+    router.push(`/auth/login?redirect=${encodeURIComponent(route.fullPath)}`)
+  }).catch(() => {})
+}
 
 async function loadArticle() {
   loading.value = true
@@ -24,15 +37,43 @@ async function loadArticle() {
   } finally {
     loading.value = false
   }
+  if (authStore.isAuthenticated) {
+    try {
+      const r = await getFavoriteStatusApi(route.params.id)
+      isFavorited.value = r.favorited
+    } catch {
+      // ignore - favorite status is optional
+    }
+  }
 }
 
-function handleFavorite() {
-  isFavorited.value = !isFavorited.value
-  ElMessage.success(isFavorited.value ? '已收藏该资讯' : '已取消收藏')
+async function handleFavorite() {
+  if (!authStore.isAuthenticated) {
+    requireLogin()
+    return
+  }
+  favoring.value = true
+  try {
+    const r = await toggleFavoriteApi(route.params.id)
+    isFavorited.value = r.favorited
+    ElMessage.success(isFavorited.value ? '已收藏该资讯' : '已取消收藏')
+  } catch (err) {
+    ElMessage.error(err?.message || '操作失败')
+  } finally {
+    favoring.value = false
+  }
 }
 
 function handleShare() {
-  ElMessage.info('分享链接已复制到剪贴板')
+  if (!authStore.isAuthenticated) {
+    requireLogin()
+    return
+  }
+  navigator.clipboard.writeText(window.location.href).then(() => {
+    ElMessage.success('分享链接已复制到剪贴板')
+  }).catch(() => {
+    ElMessage.info('分享链接：' + window.location.href)
+  })
 }
 
 watch(() => route.params.id, loadArticle)
@@ -74,7 +115,7 @@ onMounted(loadArticle)
       <div class="article-content">{{ article.content }}</div>
       <el-divider />
       <div class="article-actions">
-        <el-button :type="isFavorited ? 'warning' : ''" @click="handleFavorite">
+        <el-button :type="isFavorited ? 'warning' : ''" :loading="favoring" @click="handleFavorite">
           {{ isFavorited ? '⭐ 已收藏' : '☆ 收藏' }}
         </el-button>
         <el-button @click="handleShare">🔗 分享</el-button>

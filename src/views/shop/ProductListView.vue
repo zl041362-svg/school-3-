@@ -155,7 +155,7 @@ onMounted(loadProducts)
       <el-empty v-if="!rows.length" description="暂无符合条件的商品" />
     </div>
 
-    <div v-if="total > query.pageSize" style="text-align: center; margin-top: 24px">
+    <div v-if="total >= query.pageSize" style="text-align: center; margin-top: 24px">
       <el-pagination
         :current-page="query.page"
         :page-size="query.pageSize"

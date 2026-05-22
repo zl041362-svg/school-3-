@@ -15,3 +15,7 @@ export function updateCartItemApi(id, payload) {
 export function removeCartItemApi(id) {
   return http.delete(`/cart/items/${id}`)
 }
+
+export function clearCartApi() {
+  return http.delete('/cart')
+}
