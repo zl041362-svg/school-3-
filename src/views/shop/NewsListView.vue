@@ -2,6 +2,7 @@
 import { onMounted, reactive, ref } from 'vue'
 import { getNewsListApi } from '@/api/modules/news'
 import { mockNews } from '@/mocks/shop'
+import { resolveItems } from '@/utils/apiResponse'
 
 const loading = ref(false)
 const error = ref('')
@@ -18,7 +19,7 @@ async function loadNews() {
   error.value = ''
   try {
     const result = await getNewsListApi(query)
-    newsRows.value = result.items || result.list || result.data || []
+    newsRows.value = resolveItems(result)
     total.value = result.total || newsRows.value.length
   } catch (err) {
     newsRows.value = mockNews

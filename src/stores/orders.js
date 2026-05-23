@@ -1,24 +1,17 @@
 import { defineStore } from 'pinia'
 import { createOrderApi, getOrderDetailApi, getOrdersApi } from '@/api/modules/orders'
 import { mockOrders } from '@/mocks/transaction'
+import { resolveEntity, resolveItems } from '@/utils/apiResponse'
+import { readJsonStorage, writeJsonStorage } from '@/utils/storage'
 
 const ORDER_STORAGE_KEY = 'ZHHS_ORDER_ITEMS'
 
 function readStorage() {
-  const value = localStorage.getItem(ORDER_STORAGE_KEY)
-  if (!value) {
-    return structuredClone(mockOrders)
-  }
-
-  try {
-    return JSON.parse(value)
-  } catch {
-    return structuredClone(mockOrders)
-  }
+  return readJsonStorage(ORDER_STORAGE_KEY, mockOrders)
 }
 
 function writeStorage(orders) {
-  localStorage.setItem(ORDER_STORAGE_KEY, JSON.stringify(orders))
+  writeJsonStorage(ORDER_STORAGE_KEY, orders)
 }
 
 export const useOrderStore = defineStore('orders', {
@@ -37,7 +30,7 @@ export const useOrderStore = defineStore('orders', {
 
       try {
         const result = await getOrdersApi({ page: 1, pageSize: 20 })
-        this.orders = result.items || result.list || result.data || []
+        this.orders = resolveItems(result)
         this.persist()
       } catch (error) {
         this.orders = readStorage()
@@ -51,7 +44,7 @@ export const useOrderStore = defineStore('orders', {
 
       try {
         const result = await createOrderApi(payload)
-        const order = result.order || result.data || result
+        const order = resolveEntity(result)
         this.orders.unshift(order)
         this.persist()
         return order
@@ -65,7 +58,7 @@ export const useOrderStore = defineStore('orders', {
 
       try {
         const result = await getOrderDetailApi(id)
-        const order = result.order || result.data || result
+        const order = resolveEntity(result)
         this.orders = this.orders.map((o) => (o.id === order.id ? order : o))
         this.persist()
         return order

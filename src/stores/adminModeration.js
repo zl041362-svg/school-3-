@@ -26,82 +26,64 @@ import {
   mockNewsReviews,
   mockProductReviews,
 } from '@/mocks/admin'
+import { resolveItems, resolvePagination } from '@/utils/apiResponse'
+import { readJsonStorage, writeJsonStorage } from '@/utils/storage'
 
 const ADMIN_STORAGE_KEY = 'ZHHS_ADMIN_MODERATION'
+const SECTION_KEYS = [
+  'farmerVerifications',
+  'productReviews',
+  'newsReviews',
+  'products',
+  'news',
+  'users',
+  'roles',
+  'permissions',
+  'logs',
+]
+
+const SECTION_CONFIG = {
+  farmerVerifications: { fetch: getFarmerVerificationsApi, fallback: mockFarmerVerifications },
+  productReviews: { fetch: getProductReviewsApi, fallback: mockProductReviews },
+  newsReviews: { fetch: getNewsReviewsApi, fallback: mockNewsReviews },
+  products: { fetch: getAdminProductsApi, fallback: mockAdminProducts },
+  news: { fetch: getAdminNewsApi, fallback: mockAdminNews },
+  users: { fetch: getAdminUsersApi, fallback: mockAdminUsers },
+  roles: { fetch: getAdminRolesApi, fallback: mockAdminRoles },
+  permissions: { fetch: getAdminPermissionsApi, fallback: mockAdminPermissions },
+  logs: { fetch: getAdminLogsApi, fallback: mockAdminLogs },
+}
+
+const DEFAULT_PAGINATION = { total: 0, page: 1, pageSize: 20 }
 
 function createDefaultState() {
-  return {
-    farmerVerifications: structuredClone(mockFarmerVerifications),
-    productReviews: structuredClone(mockProductReviews),
-    newsReviews: structuredClone(mockNewsReviews),
-    products: structuredClone(mockAdminProducts),
-    news: structuredClone(mockAdminNews),
-    users: structuredClone(mockAdminUsers),
-    roles: structuredClone(mockAdminRoles),
-    permissions: structuredClone(mockAdminPermissions),
-    logs: structuredClone(mockAdminLogs),
-  }
+  return Object.fromEntries(
+    SECTION_KEYS.map((section) => [section, structuredClone(SECTION_CONFIG[section].fallback)]),
+  )
 }
 
 function readStorage() {
-  const value = localStorage.getItem(ADMIN_STORAGE_KEY)
-  if (!value) {
-    return createDefaultState()
-  }
-
-  try {
-    return { ...createDefaultState(), ...JSON.parse(value) }
-  } catch {
-    return createDefaultState()
-  }
+  return { ...createDefaultState(), ...readJsonStorage(ADMIN_STORAGE_KEY, {}) }
 }
 
 function writeStorage(payload) {
-  localStorage.setItem(ADMIN_STORAGE_KEY, JSON.stringify(payload))
-}
-
-function resolveList(result, fallback) {
-  return result.items || result.list || result.data || fallback
-}
-
-function resolvePagination(result) {
-  return {
-    total: result.total || 0,
-    page: result.page || 1,
-    pageSize: result.pageSize || 20,
-  }
+  writeJsonStorage(ADMIN_STORAGE_KEY, payload)
 }
 
 function createSectionFallback(section) {
   return createDefaultState()[section]
 }
 
+function createSectionMap(valueFactory) {
+  return Object.fromEntries(SECTION_KEYS.map((section) => [section, valueFactory()]))
+}
+
 export const useAdminModerationStore = defineStore('adminModeration', {
   state: () => ({
     ...readStorage(),
-    loadingMap: {
-      farmerVerifications: false,
-      productReviews: false,
-      newsReviews: false,
-      products: false,
-      news: false,
-      users: false,
-      roles: false,
-      permissions: false,
-      logs: false,
-    },
+    loadingMap: createSectionMap(() => false),
     error: '',
-    paginationMap: {
-      farmerVerifications: { total: 0, page: 1, pageSize: 20 },
-      productReviews: { total: 0, page: 1, pageSize: 20 },
-      newsReviews: { total: 0, page: 1, pageSize: 20 },
-      products: { total: 0, page: 1, pageSize: 20 },
-      news: { total: 0, page: 1, pageSize: 20 },
-      users: { total: 0, page: 1, pageSize: 20 },
-      roles: { total: 0, page: 1, pageSize: 20 },
-      permissions: { total: 0, page: 1, pageSize: 20 },
-      logs: { total: 0, page: 1, pageSize: 20 },
-    },
+    paginationMap: createSectionMap(() => ({ ...DEFAULT_PAGINATION })),
   }),
   getters: {
     dashboardCards: (state) => [
@@ -134,79 +116,23 @@ export const useAdminModerationStore = defineStore('adminModeration', {
   },
   actions: {
     persist() {
-      writeStorage({
-        farmerVerifications: this.farmerVerifications,
-        productReviews: this.productReviews,
-        newsReviews: this.newsReviews,
-        products: this.products,
-        news: this.news,
-        users: this.users,
-        roles: this.roles,
-        permissions: this.permissions,
-        logs: this.logs,
-      })
+      writeStorage(Object.fromEntries(SECTION_KEYS.map((section) => [section, this[section]])))
     },
     async hydrateSection(section, { page = 1, pageSize = 20 } = {}) {
+      const config = SECTION_CONFIG[section]
+      if (!config) {
+        return
+      }
+
       this.loadingMap[section] = true
       this.error = ''
 
       const params = { page, pageSize }
 
       try {
-        if (section === 'farmerVerifications') {
-          const result = await getFarmerVerificationsApi(params)
-          this.farmerVerifications = resolveList(result, mockFarmerVerifications)
-          this.paginationMap.farmerVerifications = resolvePagination(result)
-        }
-
-        if (section === 'productReviews') {
-          const result = await getProductReviewsApi(params)
-          this.productReviews = resolveList(result, mockProductReviews)
-          this.paginationMap.productReviews = resolvePagination(result)
-        }
-
-        if (section === 'newsReviews') {
-          const result = await getNewsReviewsApi(params)
-          this.newsReviews = resolveList(result, mockNewsReviews)
-          this.paginationMap.newsReviews = resolvePagination(result)
-        }
-
-        if (section === 'products') {
-          const result = await getAdminProductsApi(params)
-          this.products = resolveList(result, mockAdminProducts)
-          this.paginationMap.products = resolvePagination(result)
-        }
-
-        if (section === 'news') {
-          const result = await getAdminNewsApi(params)
-          this.news = resolveList(result, mockAdminNews)
-          this.paginationMap.news = resolvePagination(result)
-        }
-
-        if (section === 'users') {
-          const result = await getAdminUsersApi(params)
-          this.users = resolveList(result, mockAdminUsers)
-          this.paginationMap.users = resolvePagination(result)
-        }
-
-        if (section === 'roles') {
-          const result = await getAdminRolesApi(params)
-          this.roles = resolveList(result, mockAdminRoles)
-          this.paginationMap.roles = resolvePagination(result)
-        }
-
-        if (section === 'permissions') {
-          const result = await getAdminPermissionsApi(params)
-          this.permissions = resolveList(result, mockAdminPermissions)
-          this.paginationMap.permissions = resolvePagination(result)
-        }
-
-        if (section === 'logs') {
-          const result = await getAdminLogsApi(params)
-          this.logs = resolveList(result, mockAdminLogs)
-          this.paginationMap.logs = resolvePagination(result)
-        }
-
+        const result = await config.fetch(params)
+        this[section] = resolveItems(result, config.fallback)
+        this.paginationMap[section] = resolvePagination(result)
         this.persist()
       } catch (error) {
         const fallback = readStorage()[section] || createSectionFallback(section)

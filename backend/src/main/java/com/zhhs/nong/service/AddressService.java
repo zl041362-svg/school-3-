@@ -1,6 +1,7 @@
 package com.zhhs.nong.service;
 
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
+import com.zhhs.nong.common.PageUtils;
 import com.zhhs.nong.common.exception.BizException;
 import com.zhhs.nong.dto.trade.SaveAddressRequest;
 import com.zhhs.nong.mapper.AddressMapper;
@@ -11,7 +12,6 @@ import org.springframework.transaction.annotation.Transactional;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.Comparator;
-import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -142,12 +142,7 @@ public class AddressService {
         List<Address> sorted = new ArrayList<>(items);
         sorted.sort(Comparator.comparing(Address::getIsDefault, Comparator.nullsLast(Comparator.reverseOrder()))
                 .thenComparing(Address::getId, Comparator.reverseOrder()));
-        Map<String, Object> result = new LinkedHashMap<>();
-        result.put("items", sorted);
-        result.put("total", sorted.size());
-        result.put("page", 1);
-        result.put("pageSize", sorted.size());
-        return result;
+        return PageUtils.listResponse(sorted);
     }
 }
 

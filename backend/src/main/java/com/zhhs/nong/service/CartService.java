@@ -1,6 +1,8 @@
 package com.zhhs.nong.service;
 
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
+import com.zhhs.nong.common.PageUtils;
+import com.zhhs.nong.common.QuantityUtils;
 import com.zhhs.nong.common.exception.BizException;
 import com.zhhs.nong.dto.trade.AddCartItemRequest;
 import com.zhhs.nong.dto.trade.UpdateCartQtyRequest;
@@ -13,8 +15,6 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
-import java.util.ArrayList;
-import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -35,7 +35,7 @@ public class CartService {
         List<CartItem> items = cartItemMapper.selectList(new LambdaQueryWrapper<CartItem>()
                 .eq(CartItem::getUserId, userId)
                 .orderByDesc(CartItem::getId));
-        return listResponse(enrich(items));
+        return PageUtils.listResponse(enrich(items));
     }
 
     @Transactional
@@ -46,7 +46,7 @@ public class CartService {
             throw new BizException(4002, "product is sold out");
         }
 
-        int qty = normalizeQty(request.qty(), stockObj);
+        int qty = QuantityUtils.clampToAvailableStock(request.qty(), stockObj);
         CartItem existing = cartItemMapper.selectOne(new LambdaQueryWrapper<CartItem>()
                 .eq(CartItem::getUserId, userId)
                 .eq(CartItem::getProductId, request.productId()));
@@ -54,7 +54,7 @@ public class CartService {
         CartItem target;
         if (existing != null) {
             target = existing;
-            target.setQty(normalizeQty(existing.getQty() + qty, product.getStock()));
+            target.setQty(QuantityUtils.clampToAvailableStock(existing.getQty() + qty, product.getStock()));
             target.setUpdatedAt(LocalDateTime.now());
             cartItemMapper.updateById(target);
         } else {
@@ -78,7 +78,7 @@ public class CartService {
         if (stockObj == null || stockObj <= 0) {
             throw new BizException(4002, "product is sold out");
         }
-        item.setQty(normalizeQty(request.qty(), stockObj));
+        item.setQty(QuantityUtils.clampToAvailableStock(request.qty(), stockObj));
         item.setUpdatedAt(LocalDateTime.now());
         cartItemMapper.updateById(item);
         enrich(item, product);
@@ -141,24 +141,6 @@ public class CartService {
         return item;
     }
 
-    private int normalizeQty(int qty, int stock) {
-        if (qty < 1) {
-            return 1;
-        }
-        if (stock > 0) {
-            return Math.min(qty, stock);
-        }
-        return qty;
-    }
-
-    private Map<String, Object> listResponse(List<CartItem> items) {
-        Map<String, Object> result = new LinkedHashMap<>();
-        result.put("items", items);
-        result.put("total", items.size());
-        result.put("page", 1);
-        result.put("pageSize", items.size());
-        return result;
-    }
 }
 
 

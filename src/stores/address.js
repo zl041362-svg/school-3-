@@ -6,24 +6,17 @@ import {
   updateAddressApi,
 } from '@/api/modules/addresses'
 import { mockAddresses } from '@/mocks/addresses'
+import { resolveItems } from '@/utils/apiResponse'
+import { readJsonStorage, writeJsonStorage } from '@/utils/storage'
 
 const ADDRESS_STORAGE_KEY = 'ZHHS_ADDRESS_ITEMS'
 
 function readStorage() {
-  const value = localStorage.getItem(ADDRESS_STORAGE_KEY)
-  if (!value) {
-    return structuredClone(mockAddresses)
-  }
-
-  try {
-    return JSON.parse(value)
-  } catch {
-    return structuredClone(mockAddresses)
-  }
+  return readJsonStorage(ADDRESS_STORAGE_KEY, mockAddresses)
 }
 
 function writeStorage(addresses) {
-  localStorage.setItem(ADDRESS_STORAGE_KEY, JSON.stringify(addresses))
+  writeJsonStorage(ADDRESS_STORAGE_KEY, addresses)
 }
 
 export const useAddressStore = defineStore('addresses', {
@@ -53,7 +46,7 @@ export const useAddressStore = defineStore('addresses', {
 
       try {
         const result = await getAddressesApi()
-        this.addresses = result.items || result.list || result.data || []
+        this.addresses = resolveItems(result)
         this.persist()
       } catch (error) {
         this.addresses = readStorage()

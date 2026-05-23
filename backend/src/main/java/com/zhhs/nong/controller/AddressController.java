@@ -1,5 +1,6 @@
 package com.zhhs.nong.controller;
 
+import com.zhhs.nong.common.CurrentUser;
 import com.zhhs.nong.dto.trade.SaveAddressRequest;
 import com.zhhs.nong.model.Address;
 import com.zhhs.nong.service.AddressService;
@@ -28,28 +29,24 @@ public class AddressController {
 
     @GetMapping
     public Map<String, Object> list(Authentication authentication) {
-        return addressService.getAddresses(userId(authentication));
+        return addressService.getAddresses(CurrentUser.id(authentication));
     }
 
     @PostMapping
     public Address create(Authentication authentication, @Valid @RequestBody SaveAddressRequest request) {
-        return addressService.saveAddress(userId(authentication), null, request);
+        return addressService.saveAddress(CurrentUser.id(authentication), null, request);
     }
 
     @PutMapping("/{id}")
     public Address update(Authentication authentication,
                           @PathVariable Long id,
                           @Valid @RequestBody SaveAddressRequest request) {
-        return addressService.saveAddress(userId(authentication), id, request);
+        return addressService.saveAddress(CurrentUser.id(authentication), id, request);
     }
 
     @DeleteMapping("/{id}")
     public void delete(Authentication authentication, @PathVariable Long id) {
-        addressService.removeAddress(userId(authentication), id);
-    }
-
-    private Long userId(Authentication authentication) {
-        return Long.parseLong(String.valueOf(authentication.getPrincipal()));
+        addressService.removeAddress(CurrentUser.id(authentication), id);
     }
 }
 

@@ -1,5 +1,6 @@
 package com.zhhs.nong.controller;
 
+import com.zhhs.nong.common.CurrentUser;
 import com.zhhs.nong.dto.trade.AddCartItemRequest;
 import com.zhhs.nong.dto.trade.UpdateCartQtyRequest;
 import com.zhhs.nong.model.CartItem;
@@ -29,33 +30,29 @@ public class CartController {
 
     @GetMapping
     public Map<String, Object> getCart(Authentication authentication) {
-        return cartService.getCart(userId(authentication));
+        return cartService.getCart(CurrentUser.id(authentication));
     }
 
     @PostMapping("/items")
     public CartItem addItem(Authentication authentication, @Valid @RequestBody AddCartItemRequest request) {
-        return cartService.addItem(userId(authentication), request);
+        return cartService.addItem(CurrentUser.id(authentication), request);
     }
 
     @PutMapping("/items/{id}")
     public CartItem updateQty(Authentication authentication,
                               @PathVariable Long id,
                               @Valid @RequestBody UpdateCartQtyRequest request) {
-        return cartService.updateQty(userId(authentication), id, request);
+        return cartService.updateQty(CurrentUser.id(authentication), id, request);
     }
 
     @DeleteMapping("/items/{id}")
     public void removeItem(Authentication authentication, @PathVariable Long id) {
-        cartService.removeItem(userId(authentication), id);
+        cartService.removeItem(CurrentUser.id(authentication), id);
     }
 
     @DeleteMapping
     public void clearCart(Authentication authentication) {
-        cartService.clearCart(userId(authentication));
-    }
-
-    private Long userId(Authentication authentication) {
-        return Long.parseLong(String.valueOf(authentication.getPrincipal()));
+        cartService.clearCart(CurrentUser.id(authentication));
     }
 }
 

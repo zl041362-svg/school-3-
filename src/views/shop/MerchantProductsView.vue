@@ -8,6 +8,7 @@ import {
   getMerchantProductsApi,
   updateMerchantProductApi,
 } from '@/api/modules/merchant'
+import { resolveItems } from '@/utils/apiResponse'
 
 const loading = ref(false)
 const error = ref('')
@@ -64,7 +65,7 @@ async function loadProducts() {
   error.value = ''
   try {
     const result = await getMerchantProductsApi({ page: 1, pageSize: 100 })
-    products.value = result.items || result.list || result.data || []
+    products.value = resolveItems(result)
   } catch (err) {
     error.value = err?.message || '加载商品列表失败'
   } finally {

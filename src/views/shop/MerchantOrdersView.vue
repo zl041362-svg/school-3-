@@ -3,6 +3,7 @@ import { computed, onMounted, ref } from 'vue'
 import { ElMessage } from 'element-plus'
 import PageContainer from '@/components/PageContainer.vue'
 import { getMerchantOrdersApi, shipOrderApi } from '@/api/modules/merchant'
+import { resolveItems } from '@/utils/apiResponse'
 
 const loading = ref(false)
 const error = ref('')
@@ -27,7 +28,7 @@ async function loadOrders() {
   error.value = ''
   try {
     const result = await getMerchantOrdersApi({ pageSize: 100 })
-    orders.value = result.items || result.list || result.data || []
+    orders.value = resolveItems(result)
   } catch (err) {
     error.value = err?.message || '加载订单列表失败'
   } finally {

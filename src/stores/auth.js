@@ -1,24 +1,12 @@
 import { defineStore } from 'pinia'
 import { AUTH_TOKEN_KEY, AUTH_USER_KEY, ROLES } from '@/constants/auth'
 import { getProfileApi, loginApi, registerApi } from '@/api/modules/auth'
-
-function readJson(key) {
-  const value = localStorage.getItem(key)
-  if (!value) {
-    return null
-  }
-
-  try {
-    return JSON.parse(value)
-  } catch {
-    return null
-  }
-}
+import { readJsonStorage, writeJsonStorage } from '@/utils/storage'
 
 export const useAuthStore = defineStore('auth', {
   state: () => ({
     token: localStorage.getItem(AUTH_TOKEN_KEY) || '',
-    user: readJson(AUTH_USER_KEY),
+    user: readJsonStorage(AUTH_USER_KEY),
     hydrated: false,
   }),
   getters: {
@@ -30,7 +18,7 @@ export const useAuthStore = defineStore('auth', {
       this.token = token
       this.user = user
       localStorage.setItem(AUTH_TOKEN_KEY, token)
-      localStorage.setItem(AUTH_USER_KEY, JSON.stringify(user))
+      writeJsonStorage(AUTH_USER_KEY, user)
     },
     clearSession() {
       this.token = ''
@@ -51,7 +39,7 @@ export const useAuthStore = defineStore('auth', {
       try {
         const profile = await getProfileApi()
         this.user = profile.user || profile
-        localStorage.setItem(AUTH_USER_KEY, JSON.stringify(this.user))
+        writeJsonStorage(AUTH_USER_KEY, this.user)
       } catch (error) {
         if (error?.status === 401) {
           this.clearSession()

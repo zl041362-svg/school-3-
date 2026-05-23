@@ -7,7 +7,8 @@ import java.util.Map;
 
 public final class PageUtils {
 
-    private PageUtils() {}
+    private PageUtils() {
+    }
 
     public static <T> List<T> slice(List<T> items, Integer page, Integer pageSize, int defaultPageSize) {
         int safePage = page == null || page < 1 ? 1 : page;
@@ -23,6 +24,15 @@ public final class PageUtils {
         result.put("total", total);
         result.put("page", page == null || page < 1 ? 1 : page);
         result.put("pageSize", pageSize == null || pageSize < 1 ? defaultPageSize : Math.min(pageSize, 100));
+        return result;
+    }
+
+    public static Map<String, Object> listResponse(List<?> items) {
+        Map<String, Object> result = new LinkedHashMap<>();
+        result.put("items", items);
+        result.put("total", items.size());
+        result.put("page", 1);
+        result.put("pageSize", items.size());
         return result;
     }
 }

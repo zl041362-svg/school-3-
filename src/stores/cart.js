@@ -7,37 +7,18 @@ import {
   clearCartApi,
 } from '@/api/modules/cart'
 import { mockCartItems } from '@/mocks/transaction'
+import { resolveItems } from '@/utils/apiResponse'
+import { normalizeQty } from '@/utils/quantity'
+import { readJsonStorage, writeJsonStorage } from '@/utils/storage'
 
 const CART_STORAGE_KEY = 'ZHHS_CART_ITEMS'
 
 function readStorage() {
-  const value = localStorage.getItem(CART_STORAGE_KEY)
-  if (!value) {
-    return structuredClone(mockCartItems)
-  }
-
-  try {
-    return JSON.parse(value)
-  } catch {
-    return structuredClone(mockCartItems)
-  }
+  return readJsonStorage(CART_STORAGE_KEY, mockCartItems)
 }
 
 function writeStorage(items) {
-  localStorage.setItem(CART_STORAGE_KEY, JSON.stringify(items))
-}
-
-function normalizeQty(value, stock) {
-  const parsed = Number.parseInt(value, 10)
-  if (!Number.isFinite(parsed) || parsed < 1) {
-    return 1
-  }
-
-  if (typeof stock === 'number' && stock > 0) {
-    return Math.min(parsed, stock)
-  }
-
-  return parsed
+  writeJsonStorage(CART_STORAGE_KEY, items)
 }
 
 export const useCartStore = defineStore('cart', {
@@ -60,7 +41,7 @@ export const useCartStore = defineStore('cart', {
 
       try {
         const result = await getCartApi()
-        this.items = result.items || result.list || result.data || []
+        this.items = resolveItems(result)
         this.persist()
       } catch (error) {
         this.items = readStorage()

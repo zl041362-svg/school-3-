@@ -1,4 +1,5 @@
 package com.zhhs.nong.controller;
+import com.zhhs.nong.common.CurrentUser;
 import com.zhhs.nong.dto.trade.CreateEvaluationRequest;
 import com.zhhs.nong.model.Product;
 import com.zhhs.nong.model.ProductEvaluation;
@@ -43,27 +44,23 @@ public class ProductController {
     }
     @GetMapping("/{id}/can-review")
     public Map<String, Object> canReview(Authentication authentication, @PathVariable Long id) {
-        Long userId = Long.parseLong(String.valueOf(authentication.getPrincipal()));
-        return Map.of("canReview", productService.canReview(userId, id));
+        return Map.of("canReview", productService.canReview(CurrentUser.id(authentication), id));
     }
     @PostMapping("/{id}/evaluations")
     public ProductEvaluation createEvaluation(Authentication authentication,
                                                @PathVariable Long id,
                                                @Valid @RequestBody CreateEvaluationRequest request) {
-        Long userId = Long.parseLong(String.valueOf(authentication.getPrincipal()));
-        return productService.createEvaluation(userId, id, request);
+        return productService.createEvaluation(CurrentUser.id(authentication), id, request);
     }
     @DeleteMapping("/evaluations/{id}")
     public void deleteEvaluation(Authentication authentication, @PathVariable Long id) {
-        Long userId = Long.parseLong(String.valueOf(authentication.getPrincipal()));
-        productService.deleteEvaluation(userId, id);
+        productService.deleteEvaluation(CurrentUser.id(authentication), id);
     }
 
     @GetMapping("/evaluations/my")
     public Map<String, Object> myEvaluations(Authentication authentication,
                                               @RequestParam(required = false) Integer page,
                                               @RequestParam(required = false) Integer pageSize) {
-        Long userId = Long.parseLong(String.valueOf(authentication.getPrincipal()));
-        return productService.getMyEvaluations(userId, page, pageSize);
+        return productService.getMyEvaluations(CurrentUser.id(authentication), page, pageSize);
     }
 }

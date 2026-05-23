@@ -1,6 +1,8 @@
 package com.zhhs.nong.service;
 
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
+import com.zhhs.nong.common.PageUtils;
+import com.zhhs.nong.common.QuantityUtils;
 import com.zhhs.nong.common.exception.BizException;
 import com.zhhs.nong.dto.trade.CreateOrderRequest;
 import com.zhhs.nong.mapper.CartItemMapper;
@@ -17,12 +19,9 @@ import org.springframework.transaction.annotation.Transactional;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
-import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
-
-import com.zhhs.nong.common.PageUtils;
 
 @Service
 public class OrderService {
@@ -90,7 +89,7 @@ public class OrderService {
             if (stockObj == null || stockObj <= 0) {
                 throw new BizException(4006, "insufficient stock for product " + product.getName());
             }
-            int qty = normalizeQty(line.qty(), stockObj);
+            int qty = QuantityUtils.clampToAvailableStock(line.qty(), stockObj);
             if (stockObj < qty) {
                 throw new BizException(4006, "insufficient stock for product " + product.getName());
             }
@@ -169,16 +168,6 @@ public class OrderService {
             lines.add(new LineItem(item.getProductId(), item.getQty()));
         }
         return lines;
-    }
-
-    private int normalizeQty(int qty, int stock) {
-        if (qty < 1) {
-            return 1;
-        }
-        if (stock > 0) {
-            return Math.min(qty, stock);
-        }
-        return qty;
     }
 
     private record LineItem(Long productId, Integer qty) {

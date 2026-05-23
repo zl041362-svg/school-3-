@@ -6,6 +6,7 @@ import { getProductDetailApi, getProductEvaluationsApi, canReviewProductApi, cre
 import { mockProducts } from '@/mocks/shop'
 import { useCartStore } from '@/stores/cart'
 import { useAuthStore } from '@/stores/auth'
+import { readJsonStorage, writeJsonStorage } from '@/utils/storage'
 
 const route = useRoute()
 const router = useRouter()
@@ -49,11 +50,11 @@ async function loadProduct() {
 function saveRecentView(p) {
   try {
     const KEY = 'ZHHS_RECENT_VIEWS'
-    let list = JSON.parse(localStorage.getItem(KEY) || '[]')
+    let list = readJsonStorage(KEY, [])
     list = list.filter((v) => v.id !== p.id)
     list.unshift({ id: p.id, name: p.name, time: new Date().toLocaleString('zh-CN', { hour12: false }) })
     if (list.length > 10) list = list.slice(0, 10)
-    localStorage.setItem(KEY, JSON.stringify(list))
+    writeJsonStorage(KEY, list)
   } catch {
     // localStorage unavailable - ignore
   }

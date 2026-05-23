@@ -5,6 +5,8 @@ import PageContainer from '@/components/PageContainer.vue'
 import { useAuthStore } from '@/stores/auth'
 import { useAddressStore } from '@/stores/address'
 import { updateProfileApi } from '@/api/modules/auth'
+import { AUTH_USER_KEY } from '@/constants/auth'
+import { readJsonStorage, writeJsonStorage } from '@/utils/storage'
 
 const authStore = useAuthStore()
 const addressStore = useAddressStore()
@@ -36,7 +38,7 @@ async function saveProfile() {
   try {
     const r = await updateProfileApi({ name: profileName.value.trim() })
     if (authStore.user) authStore.user = r.user
-    localStorage.setItem('AUTH_USER', JSON.stringify(r.user))
+    writeJsonStorage(AUTH_USER_KEY, r.user)
     ElMessage.success('资料已更新')
     profileDialogVisible.value = false
   } catch (err) {
@@ -136,9 +138,7 @@ const menuItems = computed(() => {
 
 onMounted(() => {
   addressStore.hydrate()
-  try { recentViews.value = JSON.parse(localStorage.getItem('ZHHS_RECENT_VIEWS') || '[]') } catch {
-    // ignore parse errors
-  }
+  recentViews.value = readJsonStorage('ZHHS_RECENT_VIEWS', [])
 })
 </script>
 

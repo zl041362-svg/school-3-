@@ -8,6 +8,7 @@ import {
   getMerchantNewsApi,
   updateMerchantNewsApi,
 } from '@/api/modules/merchant'
+import { resolveItems } from '@/utils/apiResponse'
 
 const loading = ref(false)
 const error = ref('')
@@ -48,7 +49,7 @@ async function loadNews() {
   error.value = ''
   try {
     const result = await getMerchantNewsApi({ page: 1, pageSize: 100 })
-    newsList.value = result.items || result.list || result.data || []
+    newsList.value = resolveItems(result)
   } catch (err) {
     error.value = err?.message || '加载资讯列表失败'
   } finally {

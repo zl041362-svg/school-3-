@@ -1,5 +1,6 @@
 package com.zhhs.nong.controller;
 
+import com.zhhs.nong.common.CurrentUser;
 import com.zhhs.nong.dto.trade.CreateOrderRequest;
 import com.zhhs.nong.model.Order;
 import com.zhhs.nong.service.OrderService;
@@ -29,26 +30,22 @@ public class OrderController {
     public Map<String, Object> list(Authentication authentication,
                                      @RequestParam(required = false) Integer page,
                                      @RequestParam(required = false) Integer pageSize) {
-        return orderService.getOrders(userId(authentication), page, pageSize);
+        return orderService.getOrders(CurrentUser.id(authentication), page, pageSize);
     }
 
     @GetMapping("/{id}")
     public Order detail(Authentication authentication, @PathVariable Long id) {
-        return orderService.getDetail(userId(authentication), id);
+        return orderService.getDetail(CurrentUser.id(authentication), id);
     }
 
     @PostMapping
     public Order create(Authentication authentication, @Valid @RequestBody CreateOrderRequest request) {
-        return orderService.createOrder(userId(authentication), request);
+        return orderService.createOrder(CurrentUser.id(authentication), request);
     }
 
     @PostMapping("/{id}/confirm-receipt")
     public Order confirmReceipt(Authentication authentication, @PathVariable Long id) {
-        return orderService.confirmReceipt(userId(authentication), id);
-    }
-
-    private Long userId(Authentication authentication) {
-        return Long.parseLong(String.valueOf(authentication.getPrincipal()));
+        return orderService.confirmReceipt(CurrentUser.id(authentication), id);
     }
 }
 

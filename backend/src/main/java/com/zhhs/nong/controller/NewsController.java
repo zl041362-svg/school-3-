@@ -1,4 +1,5 @@
 package com.zhhs.nong.controller;
+import com.zhhs.nong.common.CurrentUser;
 import com.zhhs.nong.model.News;
 import com.zhhs.nong.service.NewsService;
 import org.springframework.security.core.Authentication;
@@ -31,21 +32,16 @@ public class NewsController {
     }
     @PostMapping("/{id}/favorite")
     public Map<String, Object> toggleFavorite(Authentication authentication, @PathVariable Long id) {
-        Long userId = Long.parseLong(String.valueOf(authentication.getPrincipal()));
-        Map<String, Object> result = newsService.toggleFavorite(userId, id);
-        boolean isFav = (boolean) result.get("favorited");
-        return result;
+        return newsService.toggleFavorite(CurrentUser.id(authentication), id);
     }
     @GetMapping("/{id}/favorited")
     public Map<String, Object> isFavorited(Authentication authentication, @PathVariable Long id) {
-        Long userId = Long.parseLong(String.valueOf(authentication.getPrincipal()));
-        return Map.of("favorited", newsService.isFavorited(userId, id));
+        return Map.of("favorited", newsService.isFavorited(CurrentUser.id(authentication), id));
     }
     @GetMapping("/favorites")
     public Map<String, Object> favorites(Authentication authentication,
                                           @RequestParam(required = false) Integer page,
                                           @RequestParam(required = false) Integer pageSize) {
-        Long userId = Long.parseLong(String.valueOf(authentication.getPrincipal()));
-        return newsService.getFavorites(userId, page, pageSize);
+        return newsService.getFavorites(CurrentUser.id(authentication), page, pageSize);
     }
 }

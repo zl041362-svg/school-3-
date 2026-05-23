@@ -1,4 +1,5 @@
 package com.zhhs.nong.controller;
+import com.zhhs.nong.common.CurrentUser;
 import com.zhhs.nong.dto.auth.LoginRequest;
 import com.zhhs.nong.dto.auth.RegisterRequest;
 import com.zhhs.nong.service.AuthService;
@@ -28,12 +29,10 @@ public class AuthController {
     }
     @GetMapping("/profile")
     public Map<String, Object> profile(Authentication authentication) {
-        Long userId = Long.parseLong(String.valueOf(authentication.getPrincipal()));
-        return authService.profile(userId);
+        return authService.profile(CurrentUser.id(authentication));
     }
     @PutMapping("/profile")
     public Map<String, Object> updateProfile(Authentication authentication, @RequestBody Map<String, String> body) {
-        Long userId = Long.parseLong(String.valueOf(authentication.getPrincipal()));
-        return authService.updateProfile(userId, body.get("name"));
+        return authService.updateProfile(CurrentUser.id(authentication), body.get("name"));
     }
 }

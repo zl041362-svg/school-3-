@@ -5,6 +5,7 @@ import { ElMessage } from 'element-plus'
 import { getProductsApi } from '@/api/modules/products'
 import { mockProducts } from '@/mocks/shop'
 import { useCartStore } from '@/stores/cart'
+import { resolveItems } from '@/utils/apiResponse'
 
 const route = useRoute()
 const cartStore = useCartStore()
@@ -30,7 +31,7 @@ async function loadProducts() {
   error.value = ''
   try {
     const result = await getProductsApi(query)
-    rows.value = result.items || result.list || result.data || []
+    rows.value = resolveItems(result)
     total.value = result.total || rows.value.length
   } catch (err) {
     rows.value = mockProducts.filter((item) => {
