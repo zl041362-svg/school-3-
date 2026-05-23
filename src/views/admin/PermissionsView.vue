@@ -2,6 +2,7 @@
 import { computed, onMounted, reactive, ref } from 'vue'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import PageContainer from '@/components/PageContainer.vue'
+import ErrorAlert from '@/components/ErrorAlert.vue'
 import { useAdminModerationStore } from '@/stores/adminModeration'
 import { createAdminPermissionApi, updateAdminPermissionApi, deleteAdminPermissionApi } from '@/api/modules/admin'
 
@@ -23,31 +24,22 @@ const dialogVisible = ref(false)
 const editingId = ref(null)
 const form = reactive({ module: '', action: '', role: '' })
 
-function handlePageChange(page) {
-  moderationStore.hydrateSection('permissions', { page })
-}
+function handlePageChange(page) { moderationStore.hydrateSection('permissions', { page }) }
 
 function handleCreate() {
   editingId.value = null
-  form.module = ''
-  form.action = ''
-  form.role = ''
+  form.module = ''; form.action = ''; form.role = ''
   dialogVisible.value = true
 }
 
 function handleEdit(row) {
   editingId.value = row.id
-  form.module = row.module
-  form.action = row.action
-  form.role = row.role
+  form.module = row.module; form.action = row.action; form.role = row.role
   dialogVisible.value = true
 }
 
 async function handleSave() {
-  if (!form.module || !form.action || !form.role) {
-    ElMessage.warning('请填写完整信息')
-    return
-  }
+  if (!form.module || !form.action || !form.role) { ElMessage.warning('请填写完整信息'); return }
   try {
     if (editingId.value) {
       await updateAdminPermissionApi(editingId.value, form)
@@ -58,9 +50,7 @@ async function handleSave() {
     }
     dialogVisible.value = false
     moderationStore.hydrateSection('permissions')
-  } catch (err) {
-    ElMessage.error(err?.message || '操作失败')
-  }
+  } catch (err) { ElMessage.error(err?.message || '操作失败') }
 }
 
 async function handleDelete(row) {
@@ -69,14 +59,10 @@ async function handleDelete(row) {
     await deleteAdminPermissionApi(row.id)
     ElMessage.success('权限已删除')
     moderationStore.hydrateSection('permissions')
-  } catch (err) {
-    ElMessage.error(err?.message || '删除失败')
-  }
+  } catch (err) { ElMessage.error(err?.message || '删除失败') }
 }
 
-onMounted(() => {
-  moderationStore.hydrateSection('permissions')
-})
+onMounted(() => { moderationStore.hydrateSection('permissions') })
 </script>
 
 <template>
@@ -86,16 +72,9 @@ onMounted(() => {
       <el-button @click="moderationStore.hydrateSection('permissions')">刷新</el-button>
     </template>
 
-    <el-alert
-      v-if="moderationStore.error"
-      type="warning"
-      show-icon
-      :closable="false"
-      :title="moderationStore.error"
-      style="margin-bottom: 16px"
-    />
+    <ErrorAlert v-if="moderationStore.error" :message="moderationStore.error" />
 
-    <div style="display: flex; gap: 12px; margin-bottom: 16px">
+    <div class="filter-bar">
       <el-input v-model="searchKeyword" placeholder="搜索模块/操作/角色" style="max-width: 260px" clearable />
     </div>
 
@@ -112,14 +91,8 @@ onMounted(() => {
       </el-table-column>
     </el-table>
 
-    <div v-if="pagination.total > pagination.pageSize" style="text-align: center; margin-top: 16px">
-      <el-pagination
-        :current-page="pagination.page"
-        :page-size="pagination.pageSize"
-        :total="pagination.total"
-        layout="prev, pager, next"
-        @current-change="handlePageChange"
-      />
+    <div v-if="pagination.total > pagination.pageSize" style="text-align: center; margin-top: 20px">
+      <el-pagination :current-page="pagination.page" :page-size="pagination.pageSize" :total="pagination.total" layout="prev, pager, next" @current-change="handlePageChange" />
     </div>
 
     <el-dialog v-model="dialogVisible" :title="editingId ? '编辑权限' : '新增权限'" width="460px">
@@ -135,3 +108,11 @@ onMounted(() => {
     </el-dialog>
   </PageContainer>
 </template>
+
+<style scoped>
+.filter-bar {
+  display: flex;
+  gap: 10px;
+  margin-bottom: 20px;
+}
+</style>

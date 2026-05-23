@@ -18,7 +18,13 @@ import com.zhhs.nong.model.Product;
 import com.zhhs.nong.model.ProductReview;
 import com.zhhs.nong.model.Role;
 import com.zhhs.nong.model.User;
-import com.zhhs.nong.service.AdminService;
+import com.zhhs.nong.service.AccessControlService;
+import com.zhhs.nong.service.FarmerManageService;
+import com.zhhs.nong.service.NewsManageService;
+import com.zhhs.nong.service.OperationLogService;
+import com.zhhs.nong.service.ProductManageService;
+import com.zhhs.nong.service.ReviewManageService;
+import com.zhhs.nong.service.UserManageService;
 import jakarta.validation.Valid;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.DeleteMapping;
@@ -38,93 +44,193 @@ import java.util.Map;
 @RequestMapping("/api/admin")
 public class AdminController {
 
-    private final AdminService adminService;
+    private final FarmerManageService farmerManageService;
+    private final ReviewManageService reviewManageService;
+    private final ProductManageService productManageService;
+    private final NewsManageService newsManageService;
+    private final UserManageService userManageService;
+    private final AccessControlService accessControlService;
+    private final OperationLogService operationLogService;
 
-    public AdminController(AdminService adminService) {
-        this.adminService = adminService;
+    public AdminController(FarmerManageService farmerManageService,
+                           ReviewManageService reviewManageService,
+                           ProductManageService productManageService,
+                           NewsManageService newsManageService,
+                           UserManageService userManageService,
+                           AccessControlService accessControlService,
+                           OperationLogService operationLogService) {
+        this.farmerManageService = farmerManageService;
+        this.reviewManageService = reviewManageService;
+        this.productManageService = productManageService;
+        this.newsManageService = newsManageService;
+        this.userManageService = userManageService;
+        this.accessControlService = accessControlService;
+        this.operationLogService = operationLogService;
     }
 
     @GetMapping("/farmer-verifications")
     public Map<String, Object> farmerVerifications(@RequestParam(required = false) Integer page,
                                                    @RequestParam(required = false) Integer pageSize) {
-        return adminService.getFarmerVerifications(page, pageSize);
+        return farmerManageService.getVerifications(page, pageSize);
     }
 
     @PostMapping("/farmer-verifications/{id}/review")
     public FarmerVerification reviewFarmerVerification(Authentication authentication,
                                                        @PathVariable Long id,
                                                        @Valid @RequestBody ReviewRequest request) {
-        return adminService.reviewFarmerVerification(id, request.approved(), request.reason(), CurrentUser.operator(authentication));
+        return farmerManageService.review(id, request.approved(), request.reason(), CurrentUser.operator(authentication));
+    }
+
+    @PostMapping("/farmer-verifications/batch")
+    public void batchReviewFarmerVerifications(Authentication authentication,
+                                               @Valid @RequestBody BatchReviewRequest request) {
+        farmerManageService.batchReview(request, CurrentUser.operator(authentication));
     }
 
     @GetMapping("/product-reviews")
     public Map<String, Object> productReviews(@RequestParam(required = false) Integer page,
                                               @RequestParam(required = false) Integer pageSize) {
-        return adminService.getProductReviews(page, pageSize);
+        return reviewManageService.getProductReviews(page, pageSize);
     }
 
     @PostMapping("/product-reviews/{id}/review")
     public ProductReview reviewProduct(Authentication authentication,
                                        @PathVariable Long id,
                                        @Valid @RequestBody ReviewRequest request) {
-        return adminService.reviewProduct(id, request.approved(), request.reason(), CurrentUser.operator(authentication));
+        return reviewManageService.reviewProduct(id, request.approved(), request.reason(), CurrentUser.operator(authentication));
+    }
+
+    @PostMapping("/product-reviews/batch")
+    public void batchReviewProducts(Authentication authentication,
+                                    @Valid @RequestBody BatchReviewRequest request) {
+        reviewManageService.batchReviewProducts(request, CurrentUser.operator(authentication));
     }
 
     @GetMapping("/news-reviews")
     public Map<String, Object> newsReviews(@RequestParam(required = false) Integer page,
                                             @RequestParam(required = false) Integer pageSize) {
-        return adminService.getNewsReviews(page, pageSize);
+        return reviewManageService.getNewsReviews(page, pageSize);
     }
 
     @PostMapping("/news-reviews/{id}/review")
     public NewsReview reviewNews(Authentication authentication,
                                  @PathVariable Long id,
                                  @Valid @RequestBody ReviewRequest request) {
-        return adminService.reviewNews(id, request.approved(), request.reason(), CurrentUser.operator(authentication));
+        return reviewManageService.reviewNews(id, request.approved(), request.reason(), CurrentUser.operator(authentication));
+    }
+
+    @PostMapping("/news-reviews/batch")
+    public void batchReviewNews(Authentication authentication,
+                                @Valid @RequestBody BatchReviewRequest request) {
+        reviewManageService.batchReviewNews(request, CurrentUser.operator(authentication));
     }
 
     @GetMapping("/products")
     public Map<String, Object> products(@RequestParam(required = false) Integer page,
                                         @RequestParam(required = false) Integer pageSize) {
-        return adminService.getProducts(page, pageSize);
+        return productManageService.getProducts(page, pageSize);
+    }
+
+    @PutMapping("/products/{id}")
+    public Product updateProduct(Authentication authentication,
+                                 @PathVariable Long id,
+                                 @Valid @RequestBody SaveProductAdminRequest request) {
+        return productManageService.update(id, request, CurrentUser.operator(authentication));
+    }
+
+    @PatchMapping("/products/{id}/status")
+    public Product updateProductStatus(Authentication authentication,
+                                       @PathVariable Long id,
+                                       @Valid @RequestBody StatusRequest request) {
+        return productManageService.updateStatus(id, request.status(), CurrentUser.operator(authentication));
     }
 
     @GetMapping("/news")
     public Map<String, Object> news(@RequestParam(required = false) Integer page,
                                     @RequestParam(required = false) Integer pageSize) {
-        return adminService.getNews(page, pageSize);
+        return newsManageService.getNews(page, pageSize);
+    }
+
+    @PutMapping("/news/{id}")
+    public News updateNews(Authentication authentication,
+                           @PathVariable Long id,
+                           @Valid @RequestBody SaveNewsAdminRequest request) {
+        return newsManageService.update(id, request, CurrentUser.operator(authentication));
+    }
+
+    @PatchMapping("/news/{id}/status")
+    public News updateNewsStatus(Authentication authentication,
+                                 @PathVariable Long id,
+                                 @Valid @RequestBody StatusRequest request) {
+        return newsManageService.updateStatus(id, request.status(), CurrentUser.operator(authentication));
     }
 
     @GetMapping("/users")
     public Map<String, Object> users(@RequestParam(required = false) Integer page,
                                      @RequestParam(required = false) Integer pageSize) {
-        return adminService.getUsers(page, pageSize);
+        return userManageService.getUsers(page, pageSize);
     }
 
     @PatchMapping("/users/{id}")
     public User updateUser(Authentication authentication,
                            @PathVariable Long id,
                            @Valid @RequestBody UpdateUserStatusRequest request) {
-        return adminService.updateUserStatus(id, request.status(), CurrentUser.operator(authentication));
+        return userManageService.updateStatus(id, request.status(), CurrentUser.operator(authentication));
     }
 
     @GetMapping("/roles")
     public Map<String, Object> roles(@RequestParam(required = false) Integer page,
                                      @RequestParam(required = false) Integer pageSize) {
-        return adminService.getRoles(page, pageSize);
+        return accessControlService.getRoles(page, pageSize);
     }
 
     @PatchMapping("/roles/{id}")
     public Role updateRole(Authentication authentication,
                            @PathVariable Long id,
                            @Valid @RequestBody UpdateRoleMembersRequest request) {
-        return adminService.updateRoleMembers(id, request.members(), CurrentUser.operator(authentication));
+        return accessControlService.updateRoleMembers(id, request.members(), CurrentUser.operator(authentication));
+    }
+
+    @PostMapping("/roles")
+    public Role createRole(Authentication authentication,
+                           @Valid @RequestBody RoleRequest request) {
+        return accessControlService.createRole(request.role(), request.description(), CurrentUser.operator(authentication));
+    }
+
+    @PutMapping("/roles/{id}")
+    public Role editRole(Authentication authentication,
+                         @PathVariable Long id,
+                         @Valid @RequestBody RoleRequest request) {
+        return accessControlService.updateRole(id, request.role(), request.description(), CurrentUser.operator(authentication));
+    }
+
+    @DeleteMapping("/roles/{id}")
+    public void deleteRole(Authentication authentication, @PathVariable Long id) {
+        accessControlService.deleteRole(id, CurrentUser.operator(authentication));
     }
 
     @GetMapping("/permissions")
     public Map<String, Object> permissions(@RequestParam(required = false) Integer page,
                                            @RequestParam(required = false) Integer pageSize) {
-        return adminService.getPermissions(page, pageSize);
+        return accessControlService.getPermissions(page, pageSize);
+    }
+
+    @PostMapping("/permissions")
+    public Permission createPermission(Authentication authentication,
+                                       @Valid @RequestBody PermissionRequest request) {
+        return accessControlService.createPermission(request.module(), request.action(), request.role(), CurrentUser.operator(authentication));
+    }
+
+    @PutMapping("/permissions/{id}")
+    public Permission updatePermission(Authentication authentication,
+                                       @PathVariable Long id,
+                                       @Valid @RequestBody PermissionRequest request) {
+        return accessControlService.updatePermission(id, request.module(), request.action(), request.role(), CurrentUser.operator(authentication));
+    }
+
+    @DeleteMapping("/permissions/{id}")
+    public void deletePermission(Authentication authentication, @PathVariable Long id) {
+        accessControlService.deletePermission(id, CurrentUser.operator(authentication));
     }
 
     @GetMapping("/logs")
@@ -134,90 +240,6 @@ public class AdminController {
                                     @RequestParam(required = false) String action,
                                     @RequestParam(required = false) String dateFrom,
                                     @RequestParam(required = false) String dateTo) {
-        return adminService.getLogs(page, pageSize, operator, action, dateFrom, dateTo);
-    }
-
-    @PutMapping("/products/{id}")
-    public Product updateProduct(Authentication authentication,
-                                 @PathVariable Long id,
-                                 @Valid @RequestBody SaveProductAdminRequest request) {
-        return adminService.updateProduct(id, request, CurrentUser.operator(authentication));
-    }
-
-    @PatchMapping("/products/{id}/status")
-    public Product updateProductStatus(Authentication authentication,
-                                       @PathVariable Long id,
-                                       @Valid @RequestBody StatusRequest request) {
-        return adminService.updateProductStatus(id, request.status(), CurrentUser.operator(authentication));
-    }
-
-    @PutMapping("/news/{id}")
-    public News updateNews(Authentication authentication,
-                           @PathVariable Long id,
-                           @Valid @RequestBody SaveNewsAdminRequest request) {
-        return adminService.updateNews(id, request, CurrentUser.operator(authentication));
-    }
-
-    @PatchMapping("/news/{id}/status")
-    public News updateNewsStatus(Authentication authentication,
-                                 @PathVariable Long id,
-                                 @Valid @RequestBody StatusRequest request) {
-        return adminService.updateNewsStatus(id, request.status(), CurrentUser.operator(authentication));
-    }
-
-    @PostMapping("/permissions")
-    public Permission createPermission(Authentication authentication,
-                                       @Valid @RequestBody PermissionRequest request) {
-        return adminService.createPermission(request.module(), request.action(), request.role(), CurrentUser.operator(authentication));
-    }
-
-    @PutMapping("/permissions/{id}")
-    public Permission updatePermission(Authentication authentication,
-                                       @PathVariable Long id,
-                                       @Valid @RequestBody PermissionRequest request) {
-        return adminService.updatePermission(id, request.module(), request.action(), request.role(), CurrentUser.operator(authentication));
-    }
-
-    @DeleteMapping("/permissions/{id}")
-    public void deletePermission(Authentication authentication, @PathVariable Long id) {
-        adminService.deletePermission(id, CurrentUser.operator(authentication));
-    }
-
-    @PostMapping("/roles")
-    public Role createRole(Authentication authentication,
-                           @Valid @RequestBody RoleRequest request) {
-        return adminService.createRole(request.role(), request.description(), CurrentUser.operator(authentication));
-    }
-
-    @DeleteMapping("/roles/{id}")
-    public void deleteRole(Authentication authentication, @PathVariable Long id) {
-        adminService.deleteRole(id, CurrentUser.operator(authentication));
-    }
-
-    @PutMapping("/roles/{id}")
-    public Role editRole(Authentication authentication,
-                         @PathVariable Long id,
-                         @Valid @RequestBody RoleRequest request) {
-        return adminService.updateRole(id, request.role(), request.description(), CurrentUser.operator(authentication));
-    }
-
-    @PostMapping("/product-reviews/batch")
-    public void batchReviewProducts(Authentication authentication,
-                                    @Valid @RequestBody BatchReviewRequest request) {
-        adminService.batchReviewProducts(request, CurrentUser.operator(authentication));
-    }
-
-    @PostMapping("/news-reviews/batch")
-    public void batchReviewNews(Authentication authentication,
-                                @Valid @RequestBody BatchReviewRequest request) {
-        adminService.batchReviewNews(request, CurrentUser.operator(authentication));
-    }
-
-    @PostMapping("/farmer-verifications/batch")
-    public void batchReviewFarmerVerifications(Authentication authentication,
-                                               @Valid @RequestBody BatchReviewRequest request) {
-        adminService.batchReviewFarmerVerifications(request, CurrentUser.operator(authentication));
+        return operationLogService.getLogs(page, pageSize, operator, action, dateFrom, dateTo);
     }
 }
-
-

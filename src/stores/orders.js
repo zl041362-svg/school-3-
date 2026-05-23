@@ -3,11 +3,12 @@ import { createOrderApi, getOrderDetailApi, getOrdersApi } from '@/api/modules/o
 import { mockOrders } from '@/mocks/transaction'
 import { resolveEntity, resolveItems } from '@/utils/apiResponse'
 import { readJsonStorage, writeJsonStorage } from '@/utils/storage'
+import { allowMockFallback } from '@/utils/mockControl'
 
 const ORDER_STORAGE_KEY = 'ZHHS_ORDER_ITEMS'
 
 function readStorage() {
-  return readJsonStorage(ORDER_STORAGE_KEY, mockOrders)
+  return readJsonStorage(ORDER_STORAGE_KEY, allowMockFallback() ? mockOrders : [])
 }
 
 function writeStorage(orders) {
@@ -33,8 +34,13 @@ export const useOrderStore = defineStore('orders', {
         this.orders = resolveItems(result)
         this.persist()
       } catch (error) {
-        this.orders = readStorage()
-        this.error = error.message || '订单接口不可用，已使用本地数据。'
+        if (allowMockFallback()) {
+          this.orders = readStorage()
+          this.error = error.message || '订单接口不可用，已使用本地数据。'
+        } else {
+          this.error = error.message || '订单加载失败'
+          throw error
+        }
       } finally {
         this.loading = false
       }

@@ -10,11 +10,12 @@ import { mockCartItems } from '@/mocks/transaction'
 import { resolveItems } from '@/utils/apiResponse'
 import { normalizeQty } from '@/utils/quantity'
 import { readJsonStorage, writeJsonStorage } from '@/utils/storage'
+import { allowMockFallback } from '@/utils/mockControl'
 
 const CART_STORAGE_KEY = 'ZHHS_CART_ITEMS'
 
 function readStorage() {
-  return readJsonStorage(CART_STORAGE_KEY, mockCartItems)
+  return readJsonStorage(CART_STORAGE_KEY, allowMockFallback() ? mockCartItems : [])
 }
 
 function writeStorage(items) {
@@ -44,8 +45,13 @@ export const useCartStore = defineStore('cart', {
         this.items = resolveItems(result)
         this.persist()
       } catch (error) {
-        this.items = readStorage()
-        this.error = error.message || '购物车接口不可用，已使用本地数据。'
+        if (allowMockFallback()) {
+          this.items = readStorage()
+          this.error = error.message || '购物车接口不可用，已使用本地数据。'
+        } else {
+          this.error = error.message || '购物车加载失败'
+          throw error
+        }
       } finally {
         this.loading = false
       }

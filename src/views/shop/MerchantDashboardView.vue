@@ -2,7 +2,8 @@
 import { onMounted, reactive, ref } from 'vue'
 import { useRouter } from 'vue-router'
 import { ElMessage } from 'element-plus'
-import PageContainer from '@/components/PageContainer.vue'
+import ErrorAlert from '@/components/ErrorAlert.vue'
+import LoadingState from '@/components/LoadingState.vue'
 import { getMerchantDashboardApi, createMerchantProductApi, createMerchantNewsApi } from '@/api/modules/merchant'
 
 const router = useRouter()
@@ -89,76 +90,66 @@ onMounted(loadDashboard)
 </script>
 
 <template>
-  <PageContainer title="商户后台">
-    <el-alert
-      v-if="error"
-      type="warning"
-      show-icon
-      :closable="false"
-      :title="error"
-      style="margin-bottom: 16px"
-    />
+  <div class="merchant-page">
+    <div class="page-head">
+      <div>
+        <h1 class="page-title">商户后台</h1>
+        <p class="page-sub">管理您的商品、资讯与订单</p>
+      </div>
+    </div>
 
-    <!-- 发布入口卡片 -->
-    <el-row :gutter="16" style="margin-bottom: 24px">
-      <el-col :md="12" :sm="24" style="margin-bottom: 12px">
-        <div class="publish-card" @click="openPublish('product')">
-          <div class="publish-icon">🌾</div>
-          <div class="publish-text">
-            <div class="publish-title">发布商品</div>
-            <div class="publish-desc">将农产品上架到商城，审核通过后即可售卖</div>
-          </div>
-          <div class="publish-arrow">→</div>
+    <ErrorAlert v-if="error" :message="error" />
+
+    <!-- 发布入口 -->
+    <div class="publish-row">
+      <div class="publish-card" @click="openPublish('product')">
+        <div class="publish-icon">🌾</div>
+        <div class="publish-text">
+          <div class="publish-title">发布商品</div>
+          <div class="publish-desc">将农产品上架到商城，审核通过后即可售卖</div>
         </div>
-      </el-col>
-      <el-col :md="12" :sm="24" style="margin-bottom: 12px">
-        <div class="publish-card" @click="openPublish('news')">
-          <div class="publish-icon">📰</div>
-          <div class="publish-text">
-            <div class="publish-title">发布资讯</div>
-            <div class="publish-desc">分享农技经验与产业动态，吸引更多关注</div>
-          </div>
-          <div class="publish-arrow">→</div>
+        <span class="publish-arrow">→</span>
+      </div>
+      <div class="publish-card news" @click="openPublish('news')">
+        <div class="publish-icon">📰</div>
+        <div class="publish-text">
+          <div class="publish-title">发布资讯</div>
+          <div class="publish-desc">分享农技经验与产业动态，吸引更多关注</div>
         </div>
-      </el-col>
-    </el-row>
+        <span class="publish-arrow">→</span>
+      </div>
+    </div>
 
     <!-- 统计数据 -->
-    <el-row :gutter="16" style="margin-bottom: 24px">
-      <el-col :md="8" :sm="24" style="margin-bottom: 12px">
-        <el-card class="stat-card" shadow="hover" @click="router.push('/merchant/products')">
-          <div v-loading="loading" class="stat-num">{{ stats.productCount }}</div>
-          <div class="stat-label">我的商品</div>
-        </el-card>
-      </el-col>
-      <el-col :md="8" :sm="24" style="margin-bottom: 12px">
-        <el-card class="stat-card" shadow="hover" @click="router.push('/merchant/orders')">
-          <div v-loading="loading" class="stat-num">{{ stats.pendingOrderCount }}</div>
-          <div class="stat-label">待处理订单</div>
-        </el-card>
-      </el-col>
-      <el-col :md="8" :sm="24" style="margin-bottom: 12px">
-        <el-card class="stat-card" shadow="hover" @click="router.push('/merchant/news')">
-          <div v-loading="loading" class="stat-num">{{ stats.newsCount }}</div>
-          <div class="stat-label">我的资讯</div>
-        </el-card>
-      </el-col>
-    </el-row>
+    <LoadingState v-if="loading" :rows="2" />
+    <div v-else class="stats-row">
+      <div class="stat-card" @click="router.push('/merchant/products')">
+        <div class="stat-num">{{ stats.productCount }}</div>
+        <div class="stat-label">我的商品</div>
+      </div>
+      <div class="stat-card" @click="router.push('/merchant/orders')">
+        <div class="stat-num">{{ stats.pendingOrderCount }}</div>
+        <div class="stat-label">待处理订单</div>
+      </div>
+      <div class="stat-card" @click="router.push('/merchant/news')">
+        <div class="stat-num">{{ stats.newsCount }}</div>
+        <div class="stat-label">我的资讯</div>
+      </div>
+    </div>
 
     <!-- 快捷入口 -->
-    <el-card>
-      <template #header>全部功能</template>
-      <el-space wrap size="large">
-        <el-button type="primary" @click="router.push('/merchant/products')">🌾 商品管理</el-button>
-        <el-button type="success" @click="router.push('/merchant/news')">📰 资讯管理</el-button>
-        <el-button @click="router.push('/merchant/orders')">📦 订单管理</el-button>
-        <el-button @click="router.push('/merchant/verify')">✅ 身份认证</el-button>
-      </el-space>
-    </el-card>
+    <div class="quick-links">
+      <h3 class="section-title">全部功能</h3>
+      <div class="link-grid">
+        <button class="link-btn" @click="router.push('/merchant/products')">🌾 商品管理</button>
+        <button class="link-btn" @click="router.push('/merchant/news')">📰 资讯管理</button>
+        <button class="link-btn" @click="router.push('/merchant/orders')">📦 订单管理</button>
+        <button class="link-btn" @click="router.push('/merchant/verify')">✅ 身份认证</button>
+      </div>
+    </div>
 
     <!-- 快捷发布弹窗 -->
     <el-dialog v-model="publishDialog" :title="publishType === 'product' ? '发布商品' : '发布资讯'" width="520px">
-      <!-- 商品表单 -->
       <template v-if="publishType === 'product'">
         <el-form :model="productForm" label-position="top">
           <el-row :gutter="16">
@@ -197,8 +188,6 @@ onMounted(loadDashboard)
           </el-row>
         </el-form>
       </template>
-
-      <!-- 资讯表单 -->
       <template v-else>
         <el-form :model="newsForm" label-position="top">
           <el-form-item label="标题" required>
@@ -228,64 +217,130 @@ onMounted(loadDashboard)
         </el-button>
       </template>
     </el-dialog>
-  </PageContainer>
+  </div>
 </template>
 
 <style scoped>
-.stat-card {
-  text-align: center;
-  cursor: pointer;
-  transition: transform 0.2s;
+.merchant-page {
+  padding-bottom: 32px;
 }
-.stat-card:hover {
-  transform: translateY(-2px);
+.page-head {
+  margin-bottom: 24px;
 }
-.stat-num {
-  font-size: 32px;
-  font-weight: 700;
-  color: var(--zhhs-primary, #2e7d32);
+.page-title {
+  margin: 0;
+  font-family: var(--font-display);
+  font-size: 28px;
+  font-weight: 800;
+  color: var(--color-soil);
 }
-.stat-label {
+.page-sub {
+  margin: 4px 0 0;
   font-size: 14px;
-  color: #666;
-  margin-top: 6px;
+  color: var(--color-text-muted);
 }
 
+/* Publish cards */
+.publish-row {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 16px;
+  margin-bottom: 28px;
+}
 .publish-card {
-  background: linear-gradient(135deg, var(--zhhs-primary, #2e7d32), #43a047);
-  border-radius: 12px;
-  padding: 24px 28px;
   display: flex;
   align-items: center;
   gap: 20px;
+  padding: 24px 28px;
+  border-radius: var(--radius-lg);
   cursor: pointer;
-  transition: transform 0.2s, box-shadow 0.2s;
+  transition: all 0.35s var(--ease-smooth);
+  background: linear-gradient(135deg, var(--color-terracotta), #B55D38);
   color: #fff;
+}
+.publish-card.news {
+  background: linear-gradient(135deg, var(--color-leaf), #4F6B2E);
 }
 .publish-card:hover {
   transform: translateY(-3px);
-  box-shadow: 0 8px 24px rgba(46, 125, 50, 0.3);
+  box-shadow: 0 8px 32px rgba(74, 55, 40, 0.25);
 }
-.publish-icon {
-  font-size: 40px;
-  flex-shrink: 0;
+.publish-icon { font-size: 40px; flex-shrink: 0; }
+.publish-text { flex: 1; min-width: 0; }
+.publish-title { font-size: 18px; font-weight: 700; margin-bottom: 4px; }
+.publish-desc { font-size: 13px; opacity: 0.85; }
+.publish-arrow { font-size: 24px; flex-shrink: 0; opacity: 0.7; }
+
+/* Stats */
+.stats-row {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 16px;
+  margin-bottom: 28px;
 }
-.publish-text {
-  flex: 1;
-  min-width: 0;
+.stat-card {
+  text-align: center;
+  padding: 24px;
+  background: var(--color-paper-white);
+  border: 1px solid var(--color-border-light);
+  border-radius: var(--radius-lg);
+  cursor: pointer;
+  transition: all 0.35s var(--ease-smooth);
 }
-.publish-title {
+.stat-card:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-md);
+  border-color: var(--color-terracotta-soft);
+}
+.stat-num {
+  font-family: var(--font-display);
+  font-size: 36px;
+  font-weight: 900;
+  color: var(--color-terracotta);
+}
+.stat-label {
+  font-size: 14px;
+  color: var(--color-text-muted);
+  margin-top: 6px;
+}
+
+/* Quick links */
+.quick-links {
+  background: var(--color-paper-white);
+  border: 1px solid var(--color-border-light);
+  border-radius: var(--radius-lg);
+  padding: 24px;
+}
+.section-title {
+  margin: 0 0 16px;
+  font-family: var(--font-display);
   font-size: 18px;
   font-weight: 700;
-  margin-bottom: 4px;
+  color: var(--color-soil);
 }
-.publish-desc {
-  font-size: 13px;
-  opacity: 0.85;
+.link-grid {
+  display: flex;
+  gap: 12px;
+  flex-wrap: wrap;
 }
-.publish-arrow {
-  font-size: 24px;
-  flex-shrink: 0;
-  opacity: 0.7;
+.link-btn {
+  padding: 10px 22px;
+  border-radius: var(--radius-full);
+  border: 1.5px solid var(--color-border);
+  background: var(--color-paper-white);
+  color: var(--color-text-soft);
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.25s var(--ease-smooth);
+}
+.link-btn:hover {
+  border-color: var(--color-terracotta);
+  color: var(--color-terracotta);
+}
+
+@media (max-width: 700px) {
+  .publish-row { grid-template-columns: 1fr; }
+  .stats-row { grid-template-columns: repeat(2, 1fr); }
 }
 </style>

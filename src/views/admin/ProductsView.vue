@@ -2,6 +2,7 @@
 import { computed, onMounted, reactive, ref } from 'vue'
 import { ElMessage } from 'element-plus'
 import PageContainer from '@/components/PageContainer.vue'
+import ErrorAlert from '@/components/ErrorAlert.vue'
 import { useAdminModerationStore } from '@/stores/adminModeration'
 import { updateAdminProductApi, updateAdminProductStatusApi } from '@/api/modules/admin'
 
@@ -38,25 +39,15 @@ function handlePageChange(page) {
   moderationStore.hydrateSection('products', { page })
 }
 
-function showDetail(row) {
-  detailRow.value = row
-  detailVisible.value = true
-}
+function showDetail(row) { detailRow.value = row; detailVisible.value = true }
 
 function openEdit(row) {
   editingId.value = row.id
   Object.assign(editForm, {
-    name: row.name || '',
-    category: row.category || '',
-    region: row.region || '',
-    price: row.price || '',
-    stock: row.stock || '',
-    summary: row.summary || '',
-    description: row.description || '',
-    spec: row.spec || '',
-    qualification: row.qualification || '',
-    farmer: row.farmer || '',
-    status: row.status || '',
+    name: row.name || '', category: row.category || '', region: row.region || '',
+    price: row.price || '', stock: row.stock || '', summary: row.summary || '',
+    description: row.description || '', spec: row.spec || '', qualification: row.qualification || '',
+    farmer: row.farmer || '', status: row.status || '',
   })
   editVisible.value = true
 }
@@ -65,26 +56,16 @@ async function handleEditSave() {
   saving.value = true
   try {
     await updateAdminProductApi(editingId.value, {
-      name: editForm.name,
-      category: editForm.category,
-      region: editForm.region,
-      price: Number(editForm.price),
-      stock: Number(editForm.stock),
-      summary: editForm.summary,
-      description: editForm.description,
-      spec: editForm.spec,
-      qualification: editForm.qualification,
-      farmer: editForm.farmer,
-      status: editForm.status,
+      name: editForm.name, category: editForm.category, region: editForm.region,
+      price: Number(editForm.price), stock: Number(editForm.stock),
+      summary: editForm.summary, description: editForm.description,
+      spec: editForm.spec, qualification: editForm.qualification,
+      farmer: editForm.farmer, status: editForm.status,
     })
     ElMessage.success('商品信息已更新')
     editVisible.value = false
     moderationStore.hydrateSection('products')
-  } catch (err) {
-    ElMessage.error(err?.message || '更新失败')
-  } finally {
-    saving.value = false
-  }
+  } catch (err) { ElMessage.error(err?.message || '更新失败') } finally { saving.value = false }
 }
 
 async function toggleStatus(row) {
@@ -94,14 +75,10 @@ async function toggleStatus(row) {
     await updateAdminProductStatusApi(row.id, { status: nextStatus })
     ElMessage.success(`商品已${label}`)
     moderationStore.hydrateSection('products')
-  } catch (err) {
-    ElMessage.error(err?.message || `商品${label}失败`)
-  }
+  } catch (err) { ElMessage.error(err?.message || `商品${label}失败`) }
 }
 
-onMounted(() => {
-  moderationStore.hydrateSection('products')
-})
+onMounted(() => { moderationStore.hydrateSection('products') })
 </script>
 
 <template>
@@ -110,25 +87,15 @@ onMounted(() => {
       <el-button @click="moderationStore.hydrateSection('products')">刷新</el-button>
     </template>
 
-    <el-alert
-      v-if="moderationStore.error"
-      type="warning"
-      show-icon
-      :closable="false"
-      :title="moderationStore.error"
-      style="margin-bottom: 16px"
-    />
+    <ErrorAlert v-if="moderationStore.error" :message="moderationStore.error" />
 
-    <div style="display: flex; gap: 12px; margin-bottom: 16px; flex-wrap: wrap; align-items: center">
+    <div class="filter-bar">
       <el-input v-model="searchKeyword" placeholder="搜索商品名或农户" style="max-width: 260px" clearable />
-      <el-tag
-        v-for="s in statusOptions"
-        :key="s"
-        :type="activeStatus === s ? 'primary' : 'info'"
-        :effect="activeStatus === s ? 'dark' : 'plain'"
-        style="cursor: pointer"
+      <button
+        v-for="s in statusOptions" :key="s"
+        class="filter-btn" :class="{ active: activeStatus === s }"
         @click="activeStatus = s"
-      >{{ s }}</el-tag>
+      >{{ s }}</button>
     </div>
 
     <el-table v-loading="moderationStore.loadingMap?.products" :data="filteredRows" border>
@@ -136,7 +103,7 @@ onMounted(() => {
       <el-table-column prop="name" label="商品名称" />
       <el-table-column prop="farmer" label="发布农户" width="140" />
       <el-table-column label="价格" width="100">
-        <template #default="scope">￥{{ scope.row.price }}</template>
+        <template #default="scope">¥{{ scope.row.price }}</template>
       </el-table-column>
       <el-table-column prop="stock" label="库存" width="80" />
       <el-table-column label="状态" width="100">
@@ -152,19 +119,11 @@ onMounted(() => {
           <el-button v-else-if="scope.row.status === 'offline'" text type="success" @click="toggleStatus(scope.row)">上架</el-button>
         </template>
       </el-table-column>
-      <template #empty>
-        <el-empty description="暂无商品数据" />
-      </template>
+      <template #empty><el-empty description="暂无商品数据" /></template>
     </el-table>
 
-    <div v-if="pagination.total > pagination.pageSize" style="text-align: center; margin-top: 16px">
-      <el-pagination
-        :current-page="pagination.page"
-        :page-size="pagination.pageSize"
-        :total="pagination.total"
-        layout="prev, pager, next"
-        @current-change="handlePageChange"
-      />
+    <div v-if="pagination.total > pagination.pageSize" style="text-align: center; margin-top: 20px">
+      <el-pagination :current-page="pagination.page" :page-size="pagination.pageSize" :total="pagination.total" layout="prev, pager, next" @current-change="handlePageChange" />
     </div>
 
     <el-dialog v-model="detailVisible" title="商品详情" width="560px">
@@ -172,7 +131,7 @@ onMounted(() => {
         <el-descriptions-item label="商品名称" :span="2">{{ detailRow.name }}</el-descriptions-item>
         <el-descriptions-item label="分类">{{ detailRow.category || '-' }}</el-descriptions-item>
         <el-descriptions-item label="产地">{{ detailRow.region || '-' }}</el-descriptions-item>
-        <el-descriptions-item label="价格">￥{{ detailRow.price }}</el-descriptions-item>
+        <el-descriptions-item label="价格">¥{{ detailRow.price }}</el-descriptions-item>
         <el-descriptions-item label="库存">{{ detailRow.stock }}</el-descriptions-item>
         <el-descriptions-item label="农户">{{ detailRow.farmer || '-' }}</el-descriptions-item>
         <el-descriptions-item label="状态">{{ STATUS_LABEL[detailRow.status] || detailRow.status }}</el-descriptions-item>
@@ -186,24 +145,12 @@ onMounted(() => {
     <el-dialog v-model="editVisible" title="编辑商品" width="560px">
       <el-form :model="editForm" label-position="top">
         <el-row :gutter="16">
-          <el-col :sm="12">
-            <el-form-item label="商品名称"><el-input v-model="editForm.name" /></el-form-item>
-          </el-col>
-          <el-col :sm="12">
-            <el-form-item label="分类"><el-input v-model="editForm.category" /></el-form-item>
-          </el-col>
-          <el-col :sm="12">
-            <el-form-item label="产地"><el-input v-model="editForm.region" /></el-form-item>
-          </el-col>
-          <el-col :sm="12">
-            <el-form-item label="农户"><el-input v-model="editForm.farmer" /></el-form-item>
-          </el-col>
-          <el-col :sm="12">
-            <el-form-item label="价格（元）"><el-input-number v-model="editForm.price" :min="0" :precision="2" style="width: 100%" /></el-form-item>
-          </el-col>
-          <el-col :sm="12">
-            <el-form-item label="库存"><el-input-number v-model="editForm.stock" :min="0" style="width: 100%" /></el-form-item>
-          </el-col>
+          <el-col :sm="12"><el-form-item label="商品名称"><el-input v-model="editForm.name" /></el-form-item></el-col>
+          <el-col :sm="12"><el-form-item label="分类"><el-input v-model="editForm.category" /></el-form-item></el-col>
+          <el-col :sm="12"><el-form-item label="产地"><el-input v-model="editForm.region" /></el-form-item></el-col>
+          <el-col :sm="12"><el-form-item label="农户"><el-input v-model="editForm.farmer" /></el-form-item></el-col>
+          <el-col :sm="12"><el-form-item label="价格（元）"><el-input-number v-model="editForm.price" :min="0" :precision="2" style="width: 100%" /></el-form-item></el-col>
+          <el-col :sm="12"><el-form-item label="库存"><el-input-number v-model="editForm.stock" :min="0" style="width: 100%" /></el-form-item></el-col>
           <el-col :sm="12">
             <el-form-item label="状态">
               <el-select v-model="editForm.status" style="width: 100%">
@@ -211,18 +158,10 @@ onMounted(() => {
               </el-select>
             </el-form-item>
           </el-col>
-          <el-col :sm="12">
-            <el-form-item label="规格"><el-input v-model="editForm.spec" /></el-form-item>
-          </el-col>
-          <el-col :sm="24">
-            <el-form-item label="摘要"><el-input v-model="editForm.summary" type="textarea" :rows="2" /></el-form-item>
-          </el-col>
-          <el-col :sm="24">
-            <el-form-item label="描述"><el-input v-model="editForm.description" type="textarea" :rows="3" /></el-form-item>
-          </el-col>
-          <el-col :sm="24">
-            <el-form-item label="资质"><el-input v-model="editForm.qualification" type="textarea" :rows="2" /></el-form-item>
-          </el-col>
+          <el-col :sm="12"><el-form-item label="规格"><el-input v-model="editForm.spec" /></el-form-item></el-col>
+          <el-col :sm="24"><el-form-item label="摘要"><el-input v-model="editForm.summary" type="textarea" :rows="2" /></el-form-item></el-col>
+          <el-col :sm="24"><el-form-item label="描述"><el-input v-model="editForm.description" type="textarea" :rows="3" /></el-form-item></el-col>
+          <el-col :sm="24"><el-form-item label="资质"><el-input v-model="editForm.qualification" type="textarea" :rows="2" /></el-form-item></el-col>
         </el-row>
       </el-form>
       <template #footer>
@@ -232,3 +171,34 @@ onMounted(() => {
     </el-dialog>
   </PageContainer>
 </template>
+
+<style scoped>
+.filter-bar {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 20px;
+  flex-wrap: wrap;
+  align-items: center;
+}
+.filter-btn {
+  padding: 5px 16px;
+  border-radius: var(--radius-full);
+  border: 1.5px solid var(--color-border);
+  background: var(--color-paper-white);
+  color: var(--color-text-soft);
+  font-size: 13px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.25s var(--ease-smooth);
+}
+.filter-btn:hover {
+  border-color: var(--color-terracotta-soft);
+  color: var(--color-terracotta);
+}
+.filter-btn.active {
+  background: var(--color-terracotta);
+  border-color: var(--color-terracotta);
+  color: #fff;
+  font-weight: 600;
+}
+</style>

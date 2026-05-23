@@ -2,6 +2,7 @@
 import { computed, onMounted, ref } from 'vue'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import PageContainer from '@/components/PageContainer.vue'
+import ErrorAlert from '@/components/ErrorAlert.vue'
 import { useAdminModerationStore } from '@/stores/adminModeration'
 
 const moderationStore = useAdminModerationStore()
@@ -44,18 +45,11 @@ onMounted(() => {
       <el-button @click="moderationStore.hydrateSection('users')">刷新</el-button>
     </template>
 
-    <el-alert
-      v-if="moderationStore.error"
-      type="warning"
-      show-icon
-      :closable="false"
-      :title="moderationStore.error"
-      style="margin-bottom: 16px"
-    />
+    <ErrorAlert v-if="moderationStore.error" :message="moderationStore.error" />
 
-    <div style="display: flex; gap: 12px; margin-bottom: 16px">
+    <div class="filter-bar">
       <el-input v-model="searchKeyword" placeholder="搜索用户名" style="max-width: 200px" clearable />
-      <el-select v-model="filterRole" placeholder="角色筛选" style="width: 120px" clearable>
+      <el-select v-model="filterRole" placeholder="角色筛选" style="width: 130px" clearable>
         <el-option label="管理员" value="admin" />
         <el-option label="农户" value="farmer" />
         <el-option label="消费者" value="customer" />
@@ -69,9 +63,9 @@ onMounted(() => {
       <el-table-column prop="createdAt" label="注册时间" width="180" />
       <el-table-column label="状态" width="140">
         <template #default="scope">
-          <el-tag :type="scope.row.status === 'active' ? 'success' : 'info'">{{
-            scope.row.status === 'active' ? '正常' : '已禁用'
-          }}</el-tag>
+          <el-tag :type="scope.row.status === 'active' ? 'success' : 'info'">
+            {{ scope.row.status === 'active' ? '正常' : '已禁用' }}
+          </el-tag>
         </template>
       </el-table-column>
       <el-table-column label="操作" width="140">
@@ -86,14 +80,21 @@ onMounted(() => {
       </template>
     </el-table>
 
-    <div v-if="pagination.total > pagination.pageSize" style="text-align: center; margin-top: 16px">
+    <div v-if="pagination.total > pagination.pageSize" style="text-align: center; margin-top: 20px">
       <el-pagination
-        :current-page="pagination.page"
-        :page-size="pagination.pageSize"
-        :total="pagination.total"
-        layout="prev, pager, next"
+        :current-page="pagination.page" :page-size="pagination.pageSize"
+        :total="pagination.total" layout="prev, pager, next"
         @current-change="handlePageChange"
       />
     </div>
   </PageContainer>
 </template>
+
+<style scoped>
+.filter-bar {
+  display: flex;
+  gap: 10px;
+  margin-bottom: 20px;
+  flex-wrap: wrap;
+}
+</style>

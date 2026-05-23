@@ -1,7 +1,9 @@
 <script setup>
 import { computed, onMounted, ref } from 'vue'
 import { ElMessage } from 'element-plus'
-import PageContainer from '@/components/PageContainer.vue'
+import ErrorAlert from '@/components/ErrorAlert.vue'
+import LoadingState from '@/components/LoadingState.vue'
+import EmptyState from '@/components/EmptyState.vue'
 import { getMerchantOrdersApi, shipOrderApi } from '@/api/modules/merchant'
 import { resolveItems } from '@/utils/apiResponse'
 
@@ -61,27 +63,31 @@ onMounted(loadOrders)
 </script>
 
 <template>
-  <PageContainer title="订单管理">
-    <template #actions>
+  <div class="merchant-page">
+    <div class="page-head">
+      <div>
+        <h1 class="page-title">订单管理</h1>
+        <p class="page-sub">处理客户订单与发货</p>
+      </div>
       <el-button @click="loadOrders">刷新</el-button>
-    </template>
+    </div>
 
-    <el-alert
-      v-if="error"
-      type="warning" show-icon :closable="false"
-      :title="error" style="margin-bottom: 16px"
-    />
+    <ErrorAlert v-if="error" :message="error" />
 
-    <el-tabs v-model="activeStatus" style="margin-bottom: 16px">
-      <el-tab-pane v-for="tab in statusTabs" :key="tab" :label="tab" :name="tab" />
-    </el-tabs>
+    <div class="filter-bar">
+      <button
+        v-for="tab in statusTabs" :key="tab"
+        class="filter-btn" :class="{ active: activeStatus === tab }"
+        @click="activeStatus = tab"
+      >{{ tab }}</button>
+    </div>
 
-    <el-skeleton v-if="loading" :rows="4" animated />
-    <el-empty v-else-if="!filteredOrders.length" description="暂无订单" />
+    <LoadingState v-if="loading" :rows="4" />
+    <EmptyState v-else-if="!filteredOrders.length" description="暂无订单" />
 
     <div v-else class="order-list">
       <div v-for="order in filteredOrders" :key="order.id" class="order-card">
-        <div class="order-header">
+        <div class="order-head">
           <span class="order-no">订单号：#{{ order.orderNo || order.id }}</span>
           <el-tag :type="STATUS_TAG[order.status] || ''">
             {{ STATUS_LABEL[order.status] || order.status }}
@@ -91,11 +97,9 @@ onMounted(loadOrders)
           <div>收货人：{{ order.receiver }} / {{ order.phone }}</div>
           <div class="order-address">地址：{{ order.address }}</div>
           <div v-if="order.logistics" class="order-logistics">物流单号：{{ order.logistics }}</div>
-          <div class="order-amount">
-            金额：<span>￥{{ order.amount }}</span>
-          </div>
+          <div class="order-amount">金额：<span class="amount-num">¥{{ order.amount }}</span></div>
         </div>
-        <div class="order-footer">
+        <div class="order-foot">
           <span class="order-time">{{ order.createdAt || '-' }}</span>
           <el-button v-if="order.status === 'pending_shipment'" type="primary" size="small" @click="openShipDialog(order.id)">填写物流</el-button>
         </div>
@@ -113,61 +117,120 @@ onMounted(loadOrders)
         <el-button type="primary" @click="handleShip">确认发货</el-button>
       </template>
     </el-dialog>
-  </PageContainer>
+  </div>
 </template>
 
 <style scoped>
+.merchant-page {
+  padding-bottom: 32px;
+}
+.page-head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  margin-bottom: 24px;
+}
+.page-title {
+  margin: 0;
+  font-family: var(--font-display);
+  font-size: 28px;
+  font-weight: 800;
+  color: var(--color-soil);
+}
+.page-sub {
+  margin: 4px 0 0;
+  font-size: 14px;
+  color: var(--color-text-muted);
+}
+
+.filter-bar {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  margin-bottom: 20px;
+}
+.filter-btn {
+  padding: 5px 16px;
+  border-radius: var(--radius-full);
+  border: 1.5px solid var(--color-border);
+  background: var(--color-paper-white);
+  color: var(--color-text-soft);
+  font-size: 13px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.25s var(--ease-smooth);
+}
+.filter-btn:hover {
+  border-color: var(--color-terracotta-soft);
+  color: var(--color-terracotta);
+}
+.filter-btn.active {
+  background: var(--color-terracotta);
+  border-color: var(--color-terracotta);
+  color: #fff;
+  font-weight: 600;
+}
+
 .order-list {
   display: flex;
   flex-direction: column;
-  gap: 12px;
+  gap: 14px;
 }
 .order-card {
-  background: #fff;
-  border-radius: 10px;
-  border: 1px solid #e8f5e9;
-  padding: 16px;
+  background: var(--color-paper-white);
+  border: 1px solid var(--color-border-light);
+  border-radius: var(--radius-lg);
+  padding: 20px;
+  transition: all 0.3s var(--ease-smooth);
 }
-.order-header {
+.order-card:hover {
+  box-shadow: var(--shadow-md);
+  border-color: var(--color-terracotta-soft);
+}
+.order-head {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 10px;
+  margin-bottom: 12px;
 }
 .order-no {
   font-weight: 600;
   font-size: 14px;
-  color: #333;
+  color: var(--color-soil);
 }
 .order-body {
-  color: #666;
+  color: var(--color-text-soft);
   font-size: 13px;
   display: flex;
   flex-direction: column;
   gap: 4px;
-  margin-bottom: 10px;
+  margin-bottom: 12px;
 }
 .order-address {
-  color: #888;
+  color: var(--color-text-muted);
   font-size: 12px;
 }
 .order-logistics {
-  color: var(--zhhs-primary, #2e7d32);
+  color: var(--color-terracotta);
   font-size: 13px;
   font-weight: 500;
 }
-.order-amount span {
-  font-weight: 700;
-  color: #e53935;
-  font-size: 16px;
+.order-amount {
+  margin-top: 4px;
 }
-.order-footer {
+.amount-num {
+  font-family: var(--font-display);
+  font-weight: 800;
+  color: var(--color-berry);
+  font-size: 18px;
+}
+.order-foot {
   display: flex;
   justify-content: space-between;
   align-items: center;
 }
 .order-time {
-  color: #999;
+  color: var(--color-text-muted);
   font-size: 12px;
 }
 </style>

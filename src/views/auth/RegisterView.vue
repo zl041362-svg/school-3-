@@ -66,8 +66,8 @@ async function handleRegister() {
 
 <template>
   <div>
-    <h2 style="margin: 0 0 6px; font-size: 22px">注册账号</h2>
-    <p style="margin: 0 0 24px; color: #888; font-size: 13px">加入三农平台，开启绿色产销新通道</p>
+    <h2 class="auth-title">注册账号</h2>
+    <p class="auth-sub">加入三农平台，开启绿色产销新通道</p>
 
     <el-form
       ref="formRef"
@@ -101,19 +101,86 @@ async function handleRegister() {
           placeholder="请再次输入密码"
         />
       </el-form-item>
-      <el-button
-        type="primary"
-        style="width: 100%; margin-top: 4px"
-        :loading="loading"
+      <button
+        class="submit-btn"
+        :disabled="loading"
         @click="handleRegister"
       >
-        立即注册
-      </el-button>
+        <span v-if="loading" class="btn-spinner"></span>
+        <span v-else>立即注册</span>
+      </button>
     </el-form>
 
-    <div style="margin-top: 16px; text-align: center; font-size: 13px; color: #888">
+    <div class="auth-switch">
       已有账号？
-      <el-link type="primary" @click="$router.push('/auth/login')">立即登录</el-link>
+      <button class="link-btn" @click="$router.push('/auth/login')">立即登录</button>
     </div>
   </div>
 </template>
+
+<style scoped>
+.auth-title {
+  margin: 0 0 6px;
+  font-family: var(--font-display);
+  font-size: 24px;
+  font-weight: 800;
+  color: var(--color-soil);
+}
+.auth-sub {
+  margin: 0 0 24px;
+  font-size: 13px;
+  color: var(--color-text-muted);
+}
+
+.submit-btn {
+  width: 100%;
+  margin-top: 4px;
+  padding: 12px 0;
+  border: none;
+  border-radius: var(--radius-full);
+  background: linear-gradient(135deg, var(--color-terracotta), var(--color-amber));
+  color: #fff;
+  font-size: 15px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s var(--ease-smooth);
+  box-shadow: 0 4px 16px rgba(193, 114, 69, 0.3);
+}
+.submit-btn:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 6px 24px rgba(193, 114, 69, 0.4);
+}
+.submit-btn:disabled {
+  opacity: 0.7;
+  cursor: not-allowed;
+}
+.btn-spinner {
+  display: inline-block;
+  width: 18px;
+  height: 18px;
+  border: 2px solid rgba(255,255,255,0.3);
+  border-top-color: #fff;
+  border-radius: 50%;
+  animation: spin 0.6s linear infinite;
+}
+@keyframes spin { to { transform: rotate(360deg); } }
+
+.auth-switch {
+  margin-top: 16px;
+  text-align: center;
+  font-size: 13px;
+  color: var(--color-text-muted);
+}
+.link-btn {
+  padding: 0;
+  border: none;
+  background: none;
+  color: var(--color-terracotta);
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+}
+.link-btn:hover {
+  text-decoration: underline;
+}
+</style>

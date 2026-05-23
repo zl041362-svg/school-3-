@@ -2,10 +2,11 @@
 import { computed, onMounted, reactive, ref } from 'vue'
 import { ElMessage } from 'element-plus'
 import { useRouter } from 'vue-router'
-import PageContainer from '@/components/PageContainer.vue'
 import { useAddressStore } from '@/stores/address'
 import { useCartStore } from '@/stores/cart'
 import { useOrderStore } from '@/stores/orders'
+import EmptyState from '@/components/EmptyState.vue'
+import ErrorAlert from '@/components/ErrorAlert.vue'
 
 const router = useRouter()
 const addressStore = useAddressStore()
@@ -71,32 +72,28 @@ onMounted(() => {
 </script>
 
 <template>
-  <PageContainer title="确认订单">
-    <template #actions>
-      <el-tag type="success" size="large">合计：￥{{ cartStore.totalAmount }}</el-tag>
-    </template>
+  <div class="checkout-page">
+    <div class="page-head">
+      <h1 class="page-title">确认订单</h1>
+      <p class="page-sub">合计：¥{{ cartStore.totalAmount }}</p>
+    </div>
 
-    <el-alert
-      v-if="cartStore.error || orderStore.error || addressStore.error"
-      type="warning"
-      show-icon
-      :closable="false"
-      :title="cartStore.error || orderStore.error || addressStore.error"
-      style="margin-bottom: 16px"
-    />
-    <el-empty
+    <ErrorAlert v-if="cartStore.error || orderStore.error || addressStore.error"
+      :message="cartStore.error || orderStore.error || addressStore.error" />
+
+    <EmptyState
       v-if="!cartStore.items.length && !cartStore.loading"
       description="购物车为空，请先添加商品"
     >
       <template #extra>
         <el-button type="primary" @click="router.push('/products')">去选购</el-button>
       </template>
-    </el-empty>
+    </EmptyState>
 
     <template v-else>
       <!-- 收货信息 -->
-      <el-card style="margin-bottom: 16px">
-        <template #header>收货信息</template>
+      <div class="checkout-card">
+        <h3 class="card-title">收货信息</h3>
         <el-form ref="formRef" :model="form" :rules="rules" label-position="top">
           <el-form-item label="选择已保存地址">
             <el-select
@@ -135,36 +132,115 @@ onMounted(() => {
             </el-col>
           </el-row>
         </el-form>
-      </el-card>
+      </div>
 
       <!-- 商品清单 -->
-      <el-card style="margin-bottom: 16px">
-        <template #header>商品清单</template>
+      <div class="checkout-card">
+        <h3 class="card-title">商品清单</h3>
         <el-table :data="cartStore.items" border>
           <el-table-column prop="name" label="商品名称" />
           <el-table-column label="单价" width="120">
-            <template #default="scope">￥{{ scope.row.price }}</template>
+            <template #default="scope">¥{{ scope.row.price }}</template>
           </el-table-column>
           <el-table-column prop="qty" label="数量" width="100" />
-          <el-table-column label="小计" width="120">
-            <template #default="scope"
-              >￥{{ (scope.row.qty * scope.row.price).toFixed(2) }}</template
-            >
+          <el-table-column label="小计" width="140">
+            <template #default="scope">¥{{ (scope.row.qty * scope.row.price).toFixed(2) }}</template>
           </el-table-column>
         </el-table>
-        <div style="text-align: right; margin-top: 12px; font-size: 16px; font-weight: 600">
-          订单合计：<span style="color: #e53935">￥{{ cartStore.totalAmount }}</span>
+        <div class="order-total">
+          订单合计：<span>¥{{ cartStore.totalAmount }}</span>
         </div>
-      </el-card>
+      </div>
 
-      <el-button
-        type="primary"
-        size="large"
-        :loading="submitting"
-        :disabled="!canSubmit"
+      <button
+        class="submit-btn"
+        :disabled="!canSubmit || submitting"
         @click="handleSubmit"
-        >提交订单</el-button
       >
+        <span v-if="submitting" class="btn-spinner"></span>
+        <span v-else>提交订单</span>
+      </button>
     </template>
-  </PageContainer>
+  </div>
 </template>
+
+<style scoped>
+.checkout-page {
+  padding-bottom: 32px;
+}
+.page-head {
+  margin-bottom: 24px;
+}
+.page-title {
+  margin: 0;
+  font-family: var(--font-display);
+  font-size: 28px;
+  font-weight: 800;
+  color: var(--color-soil);
+}
+.page-sub {
+  margin: 4px 0 0;
+  font-size: 14px;
+  color: var(--color-text-muted);
+}
+
+.checkout-card {
+  background: var(--color-paper-white);
+  border: 1px solid var(--color-border-light);
+  border-radius: var(--radius-lg);
+  padding: 24px;
+  margin-bottom: 16px;
+}
+.card-title {
+  margin: 0 0 16px;
+  font-family: var(--font-display);
+  font-size: 18px;
+  font-weight: 700;
+  color: var(--color-soil);
+}
+
+.order-total {
+  text-align: right;
+  margin-top: 16px;
+  font-size: 16px;
+  font-weight: 600;
+  color: var(--color-text-soft);
+}
+.order-total span {
+  font-family: var(--font-display);
+  font-size: 22px;
+  font-weight: 800;
+  color: var(--color-berry);
+}
+
+.submit-btn {
+  padding: 14px 40px;
+  border: none;
+  border-radius: var(--radius-full);
+  background: linear-gradient(135deg, var(--color-berry), #D4534A);
+  color: #fff;
+  font-size: 16px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s var(--ease-smooth);
+  box-shadow: 0 4px 20px rgba(184, 69, 58, 0.3);
+}
+.submit-btn:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 6px 28px rgba(184, 69, 58, 0.4);
+}
+.submit-btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+.btn-spinner {
+  display: inline-block;
+  width: 18px;
+  height: 18px;
+  border: 2px solid rgba(255,255,255,0.3);
+  border-top-color: #fff;
+  border-radius: 50%;
+  animation: spin 0.6s linear infinite;
+}
+@keyframes spin { to { transform: rotate(360deg); } }
+</style>

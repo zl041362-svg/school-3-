@@ -2,6 +2,7 @@
 import { computed, onMounted, reactive, ref } from 'vue'
 import { ElMessage } from 'element-plus'
 import PageContainer from '@/components/PageContainer.vue'
+import ErrorAlert from '@/components/ErrorAlert.vue'
 import { useAdminModerationStore } from '@/stores/adminModeration'
 import { updateAdminNewsApi, updateAdminNewsStatusApi } from '@/api/modules/admin'
 
@@ -34,24 +35,15 @@ const saving = ref(false)
 const editForm = reactive({ title: '', category: '', summary: '', content: '', author: '', status: '' })
 const editingId = ref(null)
 
-function handlePageChange(page) {
-  moderationStore.hydrateSection('news', { page })
-}
-
-function showDetail(row) {
-  detailRow.value = row
-  detailVisible.value = true
-}
+function handlePageChange(page) { moderationStore.hydrateSection('news', { page }) }
+function showDetail(row) { detailRow.value = row; detailVisible.value = true }
 
 function openEdit(row) {
   editingId.value = row.id
   Object.assign(editForm, {
-    title: row.title || '',
-    category: row.category || '',
-    summary: row.summary || '',
-    content: row.content || '',
-    author: row.author || '',
-    status: row.status || '',
+    title: row.title || '', category: row.category || '',
+    summary: row.summary || '', content: row.content || '',
+    author: row.author || '', status: row.status || '',
   })
   editVisible.value = true
 }
@@ -63,11 +55,7 @@ async function handleEditSave() {
     ElMessage.success('资讯已更新')
     editVisible.value = false
     moderationStore.hydrateSection('news')
-  } catch (err) {
-    ElMessage.error(err?.message || '更新失败')
-  } finally {
-    saving.value = false
-  }
+  } catch (err) { ElMessage.error(err?.message || '更新失败') } finally { saving.value = false }
 }
 
 async function toggleStatus(row) {
@@ -77,14 +65,10 @@ async function toggleStatus(row) {
     await updateAdminNewsStatusApi(row.id, { status: nextStatus })
     ElMessage.success(`资讯已${label}`)
     moderationStore.hydrateSection('news')
-  } catch (err) {
-    ElMessage.error(err?.message || `资讯${label}失败`)
-  }
+  } catch (err) { ElMessage.error(err?.message || `资讯${label}失败`) }
 }
 
-onMounted(() => {
-  moderationStore.hydrateSection('news')
-})
+onMounted(() => { moderationStore.hydrateSection('news') })
 </script>
 
 <template>
@@ -93,25 +77,15 @@ onMounted(() => {
       <el-button @click="moderationStore.hydrateSection('news')">刷新</el-button>
     </template>
 
-    <el-alert
-      v-if="moderationStore.error"
-      type="warning"
-      show-icon
-      :closable="false"
-      :title="moderationStore.error"
-      style="margin-bottom: 16px"
-    />
+    <ErrorAlert v-if="moderationStore.error" :message="moderationStore.error" />
 
-    <div style="display: flex; gap: 12px; margin-bottom: 16px; flex-wrap: wrap; align-items: center">
+    <div class="filter-bar">
       <el-input v-model="searchKeyword" placeholder="搜索标题或作者" style="max-width: 260px" clearable />
-      <el-tag
-        v-for="s in statusOptions"
-        :key="s"
-        :type="activeStatus === s ? 'primary' : 'info'"
-        :effect="activeStatus === s ? 'dark' : 'plain'"
-        style="cursor: pointer"
+      <button
+        v-for="s in statusOptions" :key="s"
+        class="filter-btn" :class="{ active: activeStatus === s }"
         @click="activeStatus = s"
-      >{{ s }}</el-tag>
+      >{{ s }}</button>
     </div>
 
     <el-table v-loading="moderationStore.loadingMap?.news" :data="filteredRows" border>
@@ -133,28 +107,20 @@ onMounted(() => {
           <el-button v-else-if="scope.row.status === 'offline'" text type="success" @click="toggleStatus(scope.row)">发布</el-button>
         </template>
       </el-table-column>
-      <template #empty>
-        <el-empty description="暂无资讯数据" />
-      </template>
+      <template #empty><el-empty description="暂无资讯数据" /></template>
     </el-table>
 
-    <div v-if="pagination.total > pagination.pageSize" style="text-align: center; margin-top: 16px">
-      <el-pagination
-        :current-page="pagination.page"
-        :page-size="pagination.pageSize"
-        :total="pagination.total"
-        layout="prev, pager, next"
-        @current-change="handlePageChange"
-      />
+    <div v-if="pagination.total > pagination.pageSize" style="text-align: center; margin-top: 20px">
+      <el-pagination :current-page="pagination.page" :page-size="pagination.pageSize" :total="pagination.total" layout="prev, pager, next" @current-change="handlePageChange" />
     </div>
 
     <el-dialog v-model="detailVisible" title="资讯详情" width="600px">
       <template v-if="detailRow">
-        <h2>{{ detailRow.title }}</h2>
-        <p style="color: #999; margin-bottom: 8px">{{ detailRow.author }} · {{ detailRow.category || '未分类' }} · {{ detailRow.publishedAt || '-' }}</p>
+        <h2 style="margin:0 0 12px; font-family: var(--font-display); color: var(--color-soil);">{{ detailRow.title }}</h2>
+        <p style="color: var(--color-text-muted); margin-bottom: 12px;">{{ detailRow.author }} · {{ detailRow.category || '未分类' }} · {{ detailRow.publishedAt || '-' }}</p>
         <el-divider />
-        <div style="margin-bottom: 12px; color: #555; background: #f8f9fa; padding: 12px; border-radius: 6px">{{ detailRow.summary || '无摘要' }}</div>
-        <div style="white-space: pre-wrap; line-height: 1.8">{{ detailRow.content || '无内容' }}</div>
+        <div style="margin-bottom: 12px; color: var(--color-text-soft); background: var(--color-cream); padding: 16px; border-radius: var(--radius-sm);">{{ detailRow.summary || '无摘要' }}</div>
+        <div style="white-space: pre-wrap; line-height: 1.8;">{{ detailRow.content || '无内容' }}</div>
       </template>
     </el-dialog>
 
@@ -162,12 +128,8 @@ onMounted(() => {
       <el-form :model="editForm" label-position="top">
         <el-form-item label="标题"><el-input v-model="editForm.title" /></el-form-item>
         <el-row :gutter="16">
-          <el-col :sm="12">
-            <el-form-item label="分类"><el-input v-model="editForm.category" /></el-form-item>
-          </el-col>
-          <el-col :sm="12">
-            <el-form-item label="作者"><el-input v-model="editForm.author" /></el-form-item>
-          </el-col>
+          <el-col :sm="12"><el-form-item label="分类"><el-input v-model="editForm.category" /></el-form-item></el-col>
+          <el-col :sm="12"><el-form-item label="作者"><el-input v-model="editForm.author" /></el-form-item></el-col>
         </el-row>
         <el-form-item label="状态">
           <el-select v-model="editForm.status" style="width: 100%">
@@ -184,3 +146,34 @@ onMounted(() => {
     </el-dialog>
   </PageContainer>
 </template>
+
+<style scoped>
+.filter-bar {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 20px;
+  flex-wrap: wrap;
+  align-items: center;
+}
+.filter-btn {
+  padding: 5px 16px;
+  border-radius: var(--radius-full);
+  border: 1.5px solid var(--color-border);
+  background: var(--color-paper-white);
+  color: var(--color-text-soft);
+  font-size: 13px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.25s var(--ease-smooth);
+}
+.filter-btn:hover {
+  border-color: var(--color-terracotta-soft);
+  color: var(--color-terracotta);
+}
+.filter-btn.active {
+  background: var(--color-terracotta);
+  border-color: var(--color-terracotta);
+  color: #fff;
+  font-weight: 600;
+}
+</style>

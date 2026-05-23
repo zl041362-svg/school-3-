@@ -2,6 +2,7 @@
 import { computed, onMounted, ref } from 'vue'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import PageContainer from '@/components/PageContainer.vue'
+import ErrorAlert from '@/components/ErrorAlert.vue'
 import { useAdminModerationStore } from '@/stores/adminModeration'
 import { batchReviewNewsApi } from '@/api/modules/admin'
 
@@ -20,8 +21,7 @@ async function handleReview(row, approved) {
     const result = await ElMessageBox.prompt('请输入驳回原因', '资讯驳回', {
       confirmButtonText: '提交', cancelButtonText: '取消', inputPlaceholder: '原因将同步给作者',
     }).catch(() => null)
-    if (!result) return
-    reason = result.value
+    if (!result) return; reason = result.value
   } else {
     try { await ElMessageBox.confirm('确认通过该资讯审核？', '审核通过', { type: 'warning', confirmButtonText: '通过', cancelButtonText: '取消' }) } catch { return }
   }
@@ -35,8 +35,7 @@ async function batchReview(approved) {
   let reason = ''
   if (!approved) {
     const result = await ElMessageBox.prompt('请输入批量驳回原因', '批量驳回', { confirmButtonText: '提交', cancelButtonText: '取消' }).catch(() => null)
-    if (!result) return
-    reason = result.value
+    if (!result) return; reason = result.value
   } else {
     try { await ElMessageBox.confirm(`确认批量通过所选 ${batchSelect.value.length} 条审核？`, '批量审核', { type: 'warning' }) } catch { return }
   }
@@ -63,7 +62,7 @@ onMounted(() => {
       <el-button @click="moderationStore.hydrateSection('newsReviews')">刷新</el-button>
     </template>
 
-    <el-alert v-if="moderationStore.error" type="warning" show-icon :closable="false" :title="moderationStore.error" style="margin-bottom: 16px" />
+    <ErrorAlert v-if="moderationStore.error" :message="moderationStore.error" />
 
     <el-table v-loading="moderationStore.loadingMap.newsReviews" :data="rows" border @selection-change="(val) => batchSelect = val">
       <el-table-column type="selection" width="50" />
@@ -87,7 +86,7 @@ onMounted(() => {
       <template #empty><el-empty description="暂无待审资讯" /></template>
     </el-table>
 
-    <div v-if="pagination.total > pagination.pageSize" style="text-align: center; margin-top: 16px">
+    <div v-if="pagination.total > pagination.pageSize" style="text-align: center; margin-top: 20px">
       <el-pagination :current-page="pagination.page" :page-size="pagination.pageSize" :total="pagination.total" layout="prev, pager, next" @current-change="handlePageChangeReviews" />
     </div>
   </PageContainer>

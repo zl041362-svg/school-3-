@@ -1,7 +1,7 @@
 <script setup>
 import { onMounted, reactive, ref } from 'vue'
 import { ElMessage, ElMessageBox } from 'element-plus'
-import PageContainer from '@/components/PageContainer.vue'
+import ErrorAlert from '@/components/ErrorAlert.vue'
 import {
   createMerchantNewsApi,
   deleteMerchantNewsApi,
@@ -130,30 +130,23 @@ onMounted(loadNews)
 </script>
 
 <template>
-  <PageContainer title="资讯管理">
-    <template #actions>
-      <el-button type="primary" @click="handleCreate">+ 新增资讯</el-button>
-    </template>
+  <div class="merchant-page">
+    <div class="page-head">
+      <div>
+        <h1 class="page-title">资讯管理</h1>
+        <p class="page-sub">发布三农资讯与动态</p>
+      </div>
+      <button class="add-btn" @click="handleCreate">+ 新增资讯</button>
+    </div>
 
-    <el-alert
-      v-if="error"
-      type="warning"
-      show-icon
-      :closable="false"
-      :title="error"
-      style="margin-bottom: 16px"
-    />
+    <ErrorAlert v-if="error" :message="error" />
 
-    <div style="margin-bottom: 16px">
-      <el-tag
-        v-for="s in statusList"
-        :key="s"
-        :type="activeStatus === s ? 'primary' : 'info'"
-        :effect="activeStatus === s ? 'dark' : 'plain'"
-        style="margin-right: 8px; cursor: pointer"
+    <div class="filter-bar">
+      <button
+        v-for="s in statusList" :key="s"
+        class="filter-btn" :class="{ active: activeStatus === s }"
         @click="activeStatus = s"
-        >{{ s }}</el-tag
-      >
+      >{{ s }}</button>
     </div>
 
     <el-table v-loading="loading" :data="filteredNews()" border>
@@ -161,9 +154,7 @@ onMounted(loadNews)
       <el-table-column prop="category" label="分类" width="120" />
       <el-table-column label="状态" width="100">
         <template #default="scope">
-          <el-tag :type="STATUS_TAG[scope.row.status]">{{
-            STATUS_LABEL[scope.row.status] || scope.row.status
-          }}</el-tag>
+          <el-tag :type="STATUS_TAG[scope.row.status]">{{ STATUS_LABEL[scope.row.status] || scope.row.status }}</el-tag>
         </template>
       </el-table-column>
       <el-table-column prop="publishedAt" label="发布时间" width="130" />
@@ -173,15 +164,13 @@ onMounted(loadNews)
             <el-button text type="primary" @click="handleEdit(scope.row)">编辑</el-button>
             <el-button
               v-if="scope.row.status === 'draft' || scope.row.status === 'rejected'"
-              text
-              type="success"
+              text type="success"
               @click="handlePublish(scope.row)"
-              >提交审核</el-button
-            >
+            >提交审核</el-button>
             <el-button text type="danger" @click="handleDelete(scope.row)">删除</el-button>
           </el-space>
         </template>
-        </el-table-column>
+      </el-table-column>
       <template #empty>
         <el-empty description="暂无资讯，快去发布吧" />
       </template>
@@ -198,12 +187,7 @@ onMounted(loadNews)
           </el-select>
         </el-form-item>
         <el-form-item label="摘要">
-          <el-input
-            v-model="form.summary"
-            type="textarea"
-            :rows="2"
-            placeholder="（选填）请输入内容摘要"
-          />
+          <el-input v-model="form.summary" type="textarea" :rows="2" placeholder="（选填）请输入内容摘要" />
         </el-form-item>
         <el-form-item label="正文内容" prop="content">
           <el-input v-model="form.content" type="textarea" :rows="6" placeholder="请输入正文内容" />
@@ -214,5 +198,73 @@ onMounted(loadNews)
         <el-button type="primary" :loading="saving" @click="handleSave">保存草稿</el-button>
       </template>
     </el-dialog>
-  </PageContainer>
+  </div>
 </template>
+
+<style scoped>
+.merchant-page {
+  padding-bottom: 32px;
+}
+.page-head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  margin-bottom: 24px;
+}
+.page-title {
+  margin: 0;
+  font-family: var(--font-display);
+  font-size: 28px;
+  font-weight: 800;
+  color: var(--color-soil);
+}
+.page-sub {
+  margin: 4px 0 0;
+  font-size: 14px;
+  color: var(--color-text-muted);
+}
+.add-btn {
+  padding: 9px 22px;
+  border: none;
+  border-radius: var(--radius-full);
+  background: linear-gradient(135deg, var(--color-terracotta), var(--color-amber));
+  color: #fff;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s var(--ease-smooth);
+  box-shadow: 0 2px 12px rgba(193, 114, 69, 0.3);
+}
+.add-btn:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 18px rgba(193, 114, 69, 0.4);
+}
+
+.filter-bar {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  margin-bottom: 20px;
+}
+.filter-btn {
+  padding: 5px 16px;
+  border-radius: var(--radius-full);
+  border: 1.5px solid var(--color-border);
+  background: var(--color-paper-white);
+  color: var(--color-text-soft);
+  font-size: 13px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.25s var(--ease-smooth);
+}
+.filter-btn:hover {
+  border-color: var(--color-terracotta-soft);
+  color: var(--color-terracotta);
+}
+.filter-btn.active {
+  background: var(--color-terracotta);
+  border-color: var(--color-terracotta);
+  color: #fff;
+  font-weight: 600;
+}
+</style>

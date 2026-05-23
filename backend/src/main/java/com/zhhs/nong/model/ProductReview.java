@@ -4,10 +4,12 @@ import com.baomidou.mybatisplus.annotation.IdType;
 import com.baomidou.mybatisplus.annotation.TableField;
 import com.baomidou.mybatisplus.annotation.TableId;
 import com.baomidou.mybatisplus.annotation.TableName;
+import lombok.Data;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 
+@Data
 @TableName("product_reviews")
 public class ProductReview {
 
@@ -24,24 +26,4 @@ public class ProductReview {
     private LocalDateTime submittedAt;
     @TableField("updated_at")
     private LocalDateTime updatedAt;
-
-    public Long getId() { return id; }
-    public void setId(Long id) { this.id = id; }
-    public Long getProductId() { return productId; }
-    public void setProductId(Long productId) { this.productId = productId; }
-    public String getProduct() { return product; }
-    public void setProduct(String product) { this.product = product; }
-    public String getFarmer() { return farmer; }
-    public void setFarmer(String farmer) { this.farmer = farmer; }
-    public BigDecimal getPrice() { return price; }
-    public void setPrice(BigDecimal price) { this.price = price; }
-    public String getStatus() { return status; }
-    public void setStatus(String status) { this.status = status; }
-    public String getReason() { return reason; }
-    public void setReason(String reason) { this.reason = reason; }
-    public LocalDateTime getSubmittedAt() { return submittedAt; }
-    public void setSubmittedAt(LocalDateTime submittedAt) { this.submittedAt = submittedAt; }
-    public LocalDateTime getUpdatedAt() { return updatedAt; }
-    public void setUpdatedAt(LocalDateTime updatedAt) { this.updatedAt = updatedAt; }
 }
-

@@ -2,6 +2,7 @@
 import { computed, onMounted, ref } from 'vue'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import PageContainer from '@/components/PageContainer.vue'
+import ErrorAlert from '@/components/ErrorAlert.vue'
 import { useAdminModerationStore } from '@/stores/adminModeration'
 import { batchReviewFarmerVerificationsApi } from '@/api/modules/admin'
 
@@ -40,10 +41,7 @@ async function handleReview(row, approved) {
 }
 
 async function batchReview(approved) {
-  if (!batchSelect.value.length) {
-    ElMessage.warning('请先选择审核项')
-    return
-  }
+  if (!batchSelect.value.length) { ElMessage.warning('请先选择审核项'); return }
   let reason = ''
   if (!approved) {
     const result = await ElMessageBox.prompt('请输入批量驳回原因', '批量驳回', {
@@ -52,18 +50,14 @@ async function batchReview(approved) {
     if (!result) return
     reason = result.value
   } else {
-    try {
-      await ElMessageBox.confirm(`确认批量通过所选 ${batchSelect.value.length} 条认证？`, '批量审核', { type: 'warning' })
-    } catch { return }
+    try { await ElMessageBox.confirm(`确认批量通过所选 ${batchSelect.value.length} 条认证？`, '批量审核', { type: 'warning' }) } catch { return }
   }
   try {
     await batchReviewFarmerVerificationsApi({ ids: batchSelect.value.map((r) => r.id), approved, reason })
     ElMessage.success(approved ? '批量审核通过' : '批量驳回完成')
     batchSelect.value = []
     moderationStore.hydrateSection('farmerVerifications')
-  } catch (err) {
-    ElMessage.error(err?.message || '批量审核失败')
-  }
+  } catch (err) { ElMessage.error(err?.message || '批量审核失败') }
 }
 
 onMounted(() => {
@@ -79,11 +73,7 @@ onMounted(() => {
       <el-button @click="moderationStore.hydrateSection('farmerVerifications')">刷新</el-button>
     </template>
 
-    <el-alert
-      v-if="moderationStore.error"
-      type="warning" show-icon :closable="false"
-      :title="moderationStore.error" style="margin-bottom: 16px"
-    />
+    <ErrorAlert v-if="moderationStore.error" :message="moderationStore.error" />
 
     <el-table v-loading="moderationStore.loadingMap.farmerVerifications" :data="rows" border @selection-change="(val) => batchSelect = val">
       <el-table-column type="selection" width="50" />
@@ -108,7 +98,7 @@ onMounted(() => {
       <template #empty><el-empty description="暂无认证申请" /></template>
     </el-table>
 
-    <div v-if="pagination.total > pagination.pageSize" style="text-align: center; margin-top: 16px">
+    <div v-if="pagination.total > pagination.pageSize" style="text-align: center; margin-top: 20px">
       <el-pagination :current-page="pagination.page" :page-size="pagination.pageSize" :total="pagination.total" layout="prev, pager, next" @current-change="handlePageChange" />
     </div>
 

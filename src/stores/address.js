@@ -8,11 +8,12 @@ import {
 import { mockAddresses } from '@/mocks/addresses'
 import { resolveItems } from '@/utils/apiResponse'
 import { readJsonStorage, writeJsonStorage } from '@/utils/storage'
+import { allowMockFallback } from '@/utils/mockControl'
 
 const ADDRESS_STORAGE_KEY = 'ZHHS_ADDRESS_ITEMS'
 
 function readStorage() {
-  return readJsonStorage(ADDRESS_STORAGE_KEY, mockAddresses)
+  return readJsonStorage(ADDRESS_STORAGE_KEY, allowMockFallback() ? mockAddresses : [])
 }
 
 function writeStorage(addresses) {
@@ -49,8 +50,13 @@ export const useAddressStore = defineStore('addresses', {
         this.addresses = resolveItems(result)
         this.persist()
       } catch (error) {
-        this.addresses = readStorage()
-        this.error = error.message || '地址接口不可用，已使用本地数据。'
+        if (allowMockFallback()) {
+          this.addresses = readStorage()
+          this.error = error.message || '地址接口不可用，已使用本地数据。'
+        } else {
+          this.error = error.message || '地址加载失败'
+          throw error
+        }
       } finally {
         this.loading = false
       }

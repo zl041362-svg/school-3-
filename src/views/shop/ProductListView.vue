@@ -6,6 +6,9 @@ import { getProductsApi } from '@/api/modules/products'
 import { mockProducts } from '@/mocks/shop'
 import { useCartStore } from '@/stores/cart'
 import { resolveItems } from '@/utils/apiResponse'
+import EmptyState from '@/components/EmptyState.vue'
+import LoadingState from '@/components/LoadingState.vue'
+import ErrorAlert from '@/components/ErrorAlert.vue'
 
 const route = useRoute()
 const cartStore = useCartStore()
@@ -101,62 +104,64 @@ onMounted(loadProducts)
 
     <!-- 分类标签 -->
     <div class="category-bar">
-      <el-tag
+      <button
         v-for="cat in categories"
         :key="cat"
-        :type="activeCategory === cat ? 'primary' : 'info'"
-        :effect="activeCategory === cat ? 'dark' : 'plain'"
-        class="cat-tag"
+        class="cat-btn"
+        :class="{ active: activeCategory === cat }"
         @click="handleCategoryChange(cat)"
-        >{{ cat }}</el-tag
-      >
+      >{{ cat }}</button>
     </div>
 
-    <el-alert
-      v-if="error"
-      type="warning"
-      show-icon
-      :closable="false"
-      :title="error"
-      style="margin-bottom: 16px"
-    />
+    <ErrorAlert v-if="error" :message="error" />
 
-    <el-skeleton v-if="loading" :rows="4" animated />
-    <div v-else class="product-grid">
-      <div
-        v-for="item in rows"
-        :key="item.id"
-        class="product-card"
-        @click="$router.push(`/products/${item.id}`)"
-      >
-        <div class="product-img">🌿</div>
-        <div class="product-info">
-          <div class="product-name">{{ item.name }}</div>
-          <div class="product-meta">{{ item.region }} · {{ item.category || '农产品' }}</div>
-          <div class="product-summary">{{ item.summary }}</div>
-          <div class="product-footer">
-            <span class="product-price">￥{{ item.price }}</span>
-            <div>
-              <el-tag v-if="item.stock <= 0" type="danger" size="small">已售罄</el-tag>
-              <el-tag v-else type="success" size="small">库存 {{ item.stock }}</el-tag>
-              <el-button
-                size="small"
-                type="primary"
-                plain
-                style="margin-left: 8px"
-                :disabled="item.stock <= 0"
-                :loading="addingId === item.id"
-                @click.stop="handleAddToCart(item)"
-                >加入购物车</el-button
-              >
+    <LoadingState v-if="loading" :rows="4" />
+    <template v-else>
+      <div v-if="rows.length" class="product-grid">
+        <article
+          v-for="(item, idx) in rows"
+          :key="item.id"
+          class="product-card"
+          :style="{ animationDelay: idx * 0.06 + 's' }"
+          @click="$router.push(`/products/${item.id}`)"
+        >
+          <div class="card-visual">
+            <div class="card-img">{{ item.category === '水果' ? '🍎' : item.category === '蔬菜' ? '🥦' : item.category === '粮油' ? '🌾' : item.category === '茶饮' ? '🍵' : item.category === '肉禽蛋' ? '🥩' : item.category === '水产' ? '🐟' : '🌿' }}</div>
+            <div v-if="item.stock <= 0" class="sold-out-badge">售罄</div>
+          </div>
+          <div class="card-body">
+            <div class="card-head">
+              <h3 class="card-name">{{ item.name }}</h3>
+              <span class="card-origin">{{ item.region }}</span>
+            </div>
+            <p class="card-desc">{{ item.summary }}</p>
+            <div class="card-foot">
+              <div class="card-price">
+                <span class="price-symbol">¥</span>
+                <span class="price-value">{{ Number(item.price).toFixed(2) }}</span>
+              </div>
+              <div class="card-right">
+                <el-tag v-if="item.stock <= 0" type="danger" size="small">已售罄</el-tag>
+                <el-tag v-else size="small" type="success">库存 {{ item.stock }}</el-tag>
+                <button
+                  v-if="item.stock > 0"
+                  class="add-btn"
+                  :class="{ loading: addingId === item.id }"
+                  :disabled="addingId === item.id"
+                  @click.stop="handleAddToCart(item)"
+                >
+                  <svg v-if="addingId !== item.id" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 5v14M5 12h14"/></svg>
+                  <span v-else class="mini-spinner"></span>
+                </button>
+              </div>
             </div>
           </div>
-        </div>
+        </article>
       </div>
-      <el-empty v-if="!rows.length" description="暂无符合条件的商品" />
-    </div>
+      <EmptyState v-else description="暂无符合条件的商品" />
+    </template>
 
-    <div v-if="total >= query.pageSize" style="text-align: center; margin-top: 24px">
+    <div v-if="total >= query.pageSize" class="pagination-wrap">
       <el-pagination
         :current-page="query.page"
         :page-size="query.pageSize"
@@ -172,85 +177,198 @@ onMounted(loadProducts)
 .product-list-page {
   padding-bottom: 32px;
 }
+
 .search-bar {
   display: flex;
   gap: 12px;
-  margin-bottom: 16px;
+  margin-bottom: 20px;
   flex-wrap: wrap;
   align-items: center;
 }
+
 .category-bar {
   display: flex;
   gap: 8px;
   flex-wrap: wrap;
-  margin-bottom: 20px;
+  margin-bottom: 24px;
 }
-.cat-tag {
+.cat-btn {
+  padding: 6px 18px;
+  border-radius: var(--radius-full);
+  border: 1.5px solid var(--color-border);
+  background: var(--color-paper-white);
+  color: var(--color-text-soft);
+  font-size: 13px;
+  font-weight: 500;
   cursor: pointer;
+  transition: all 0.25s var(--ease-smooth);
 }
+.cat-btn:hover {
+  border-color: var(--color-terracotta-soft);
+  color: var(--color-terracotta);
+}
+.cat-btn.active {
+  background: var(--color-terracotta);
+  border-color: var(--color-terracotta);
+  color: #fff;
+  font-weight: 600;
+}
+
+/* Grid */
 .product-grid {
   display: grid;
   grid-template-columns: repeat(4, 1fr);
-  gap: 16px;
+  gap: 20px;
 }
+
+/* Card */
 .product-card {
-  background: #fff;
-  border-radius: 10px;
-  border: 1px solid #e8f5e9;
+  background: var(--color-paper-white);
+  border: 1px solid var(--color-border-light);
+  border-radius: var(--radius-lg);
   overflow: hidden;
   cursor: pointer;
-  transition:
-    box-shadow 0.2s,
-    transform 0.2s;
+  transition: all 0.35s var(--ease-smooth);
+  animation: fadeUp 0.5s var(--ease-out) both;
 }
 .product-card:hover {
-  box-shadow: 0 4px 20px rgba(46, 125, 50, 0.12);
-  transform: translateY(-2px);
+  transform: translateY(-4px);
+  box-shadow: var(--shadow-lg);
+  border-color: var(--color-terracotta-soft);
 }
-.product-img {
-  background: #e8f5e9;
-  height: 120px;
+.card-visual {
+  position: relative;
+  height: 180px;
+  background: linear-gradient(160deg, var(--color-cream-dark), var(--color-paper));
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 48px;
 }
-.product-info {
-  padding: 12px;
+.card-img {
+  font-size: 64px;
+  transition: transform 0.35s var(--ease-spring);
 }
-.product-name {
-  font-size: 14px;
+.product-card:hover .card-img {
+  transform: scale(1.1);
+}
+.sold-out-badge {
+  position: absolute;
+  top: 12px;
+  right: 12px;
+  padding: 4px 12px;
+  border-radius: var(--radius-full);
+  background: rgba(0,0,0,0.55);
+  color: #fff;
+  font-size: 12px;
   font-weight: 600;
+}
+
+.card-body { padding: 16px 18px 18px; }
+.card-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
   margin-bottom: 4px;
 }
-.product-meta {
-  font-size: 12px;
-  color: #999;
-  margin-bottom: 4px;
+.card-name {
+  margin: 0;
+  font-family: var(--font-display);
+  font-size: 16px;
+  font-weight: 700;
+  color: var(--color-soil);
 }
-.product-summary {
+.card-origin {
   font-size: 12px;
-  color: #666;
-  margin-bottom: 10px;
+  color: var(--color-text-muted);
+  flex-shrink: 0;
+}
+.card-desc {
+  margin: 0 0 14px;
+  font-size: 13px;
+  color: var(--color-text-soft);
+  line-height: 1.5;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
   overflow: hidden;
-  white-space: nowrap;
-  text-overflow: ellipsis;
 }
-.product-footer {
+
+.card-foot {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  flex-wrap: wrap;
-  gap: 4px;
 }
-.product-price {
-  font-size: 16px;
-  font-weight: 700;
-  color: #e53935;
+.card-price {
+  display: flex;
+  align-items: baseline;
+  gap: 2px;
 }
-@media (max-width: 900px) {
-  .product-grid {
-    grid-template-columns: repeat(2, 1fr);
-  }
+.price-symbol {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--color-berry);
+}
+.price-value {
+  font-family: var(--font-display);
+  font-size: 22px;
+  font-weight: 800;
+  color: var(--color-berry);
+}
+.card-right {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.add-btn {
+  width: 36px;
+  height: 36px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: none;
+  border-radius: var(--radius-full);
+  background: var(--color-terracotta);
+  color: #fff;
+  cursor: pointer;
+  transition: all 0.3s var(--ease-smooth);
+  box-shadow: 0 2px 8px rgba(193, 114, 69, 0.3);
+}
+.add-btn:hover {
+  transform: scale(1.08);
+  box-shadow: 0 4px 16px rgba(193, 114, 69, 0.4);
+}
+.add-btn.loading {
+  pointer-events: none;
+  opacity: 0.7;
+}
+
+.mini-spinner {
+  width: 14px;
+  height: 14px;
+  border: 2px solid rgba(255,255,255,0.3);
+  border-top-color: #fff;
+  border-radius: 50%;
+  animation: spin 0.6s linear infinite;
+}
+@keyframes spin { to { transform: rotate(360deg); } }
+@keyframes fadeUp {
+  from { opacity: 0; transform: translateY(20px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.pagination-wrap {
+  text-align: center;
+  margin-top: 32px;
+}
+
+@media (max-width: 1100px) {
+  .product-grid { grid-template-columns: repeat(3, 1fr); }
+}
+@media (max-width: 800px) {
+  .product-grid { grid-template-columns: repeat(2, 1fr); }
+}
+@media (max-width: 520px) {
+  .product-grid { grid-template-columns: 1fr; }
 }
 </style>

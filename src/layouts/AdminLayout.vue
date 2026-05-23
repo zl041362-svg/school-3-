@@ -34,26 +34,42 @@ function handleLogout() {
 
 <template>
   <el-container class="admin-layout">
-    <el-aside width="220px" class="admin-aside">
-      <div class="admin-brand">🌾 智慧三农·管理</div>
-      <el-menu :default-active="activePath" class="admin-menu" @select="handleSelect">
-        <el-menu-item v-for="menu in menus" :key="menu.path" :index="menu.path">
-          <span class="menu-icon">{{ menu.icon }}</span>
-          <span>{{ menu.label }}</span>
-        </el-menu-item>
-      </el-menu>
+    <!-- 侧边栏 -->
+    <el-aside width="230px" class="admin-aside">
+      <div class="aside-brand">
+        <span class="brand-glyph">丰</span>
+        <span class="brand-text">智慧三农 · 管理</span>
+      </div>
+      <nav class="aside-nav">
+        <button
+          v-for="menu in menus"
+          :key="menu.path"
+          class="nav-item"
+          :class="{ active: activePath === menu.path }"
+          @click="handleSelect(menu.path)"
+        >
+          <span class="nav-icon">{{ menu.icon }}</span>
+          <span class="nav-label">{{ menu.label }}</span>
+        </button>
+      </nav>
+      <div class="aside-foot">
+        <button class="shop-link" @click="$router.push('/')">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/></svg>
+          前往商城
+        </button>
+      </div>
     </el-aside>
 
+    <!-- 主区域 -->
     <el-container>
       <el-header class="admin-header">
         <el-breadcrumb separator=">">
           <el-breadcrumb-item>管理后台</el-breadcrumb-item>
           <el-breadcrumb-item>{{ route.meta.title || '控制台' }}</el-breadcrumb-item>
         </el-breadcrumb>
-        <el-space>
-          <el-button size="small" @click="$router.push('/')">前往商城</el-button>
-          <el-button type="danger" plain size="small" @click="handleLogout">退出登录</el-button>
-        </el-space>
+        <div class="header-actions">
+          <button class="action-btn" @click="handleLogout">退出登录</button>
+        </div>
       </el-header>
 
       <el-main class="admin-main">
@@ -67,66 +83,169 @@ function handleLogout() {
 .admin-layout {
   height: 100vh;
 }
+
+/* ═══ Aside ═══ */
 .admin-aside {
-  background: #1a2e1a;
+  background: linear-gradient(180deg, #2E2218 0%, #3C2A1C 40%, #2E2218 100%);
+  display: flex;
+  flex-direction: column;
   overflow: hidden;
 }
-.admin-brand {
-  padding: 20px 16px;
+.aside-brand {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 22px 20px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+}
+.brand-glyph {
+  width: 36px;
+  height: 36px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: linear-gradient(135deg, var(--color-terracotta), var(--color-amber));
+  color: #fff;
+  font-family: var(--font-display);
+  font-size: 18px;
+  font-weight: 900;
+  border-radius: 8px;
+  flex-shrink: 0;
+}
+.brand-text {
+  font-family: var(--font-display);
   font-size: 16px;
   font-weight: 700;
-  color: #a5d6a7;
-  border-bottom: 1px solid #2e4d2e;
+  color: rgba(255, 255, 255, 0.85);
+  letter-spacing: 0.03em;
 }
-.admin-menu {
+
+/* Navigation */
+.aside-nav {
+  flex: 1;
+  padding: 12px 12px;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+.nav-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 11px 16px;
+  border: none;
+  border-radius: var(--radius-sm);
   background: transparent;
-  border-right: none;
+  color: rgba(255, 255, 255, 0.55);
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.25s var(--ease-smooth);
+  text-align: left;
+  width: 100%;
 }
-.admin-menu .el-menu-item {
-  color: #c8e6c9;
+.nav-item:hover {
+  color: rgba(255, 255, 255, 0.85);
+  background: rgba(255, 255, 255, 0.06);
 }
-.admin-menu .el-menu-item:hover,
-.admin-menu .el-menu-item.is-active {
-  background: var(--zhhs-primary, #2e7d32) !important;
+.nav-item.active {
   color: #fff;
+  background: rgba(193, 114, 69, 0.3);
+  font-weight: 600;
 }
-.menu-icon {
-  margin-right: 6px;
+.nav-icon {
+  width: 20px;
+  text-align: center;
+  flex-shrink: 0;
 }
+
+.aside-foot {
+  padding: 14px 20px;
+  border-top: 1px solid rgba(255, 255, 255, 0.08);
+}
+.shop-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 7px 16px;
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  border-radius: var(--radius-full);
+  background: transparent;
+  color: rgba(255, 255, 255, 0.55);
+  font-size: 12px;
+  cursor: pointer;
+  transition: all 0.25s var(--ease-smooth);
+}
+.shop-link:hover {
+  border-color: rgba(255, 255, 255, 0.3);
+  color: rgba(255, 255, 255, 0.85);
+}
+
+/* ═══ Header ═══ */
 .admin-header {
-  background: #fff;
-  border-bottom: 1px solid #e8f5e9;
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 0 24px;
+  padding: 0 28px;
+  background: rgba(253, 249, 242, 0.92);
+  backdrop-filter: blur(12px);
+  border-bottom: 1px solid var(--color-border-light);
+  height: 56px;
 }
+.header-actions {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.action-btn {
+  padding: 6px 16px;
+  border: 1.5px solid var(--color-border);
+  border-radius: var(--radius-full);
+  background: transparent;
+  color: var(--color-text-muted);
+  font-size: 13px;
+  cursor: pointer;
+  transition: all 0.25s var(--ease-smooth);
+}
+.action-btn:hover {
+  border-color: var(--color-berry);
+  color: var(--color-berry);
+}
+
+/* ═══ Main ═══ */
 .admin-main {
-  background: #f5f7fa;
-  padding: 24px;
+  background: var(--color-cream);
+  padding: 28px;
   overflow-y: auto;
 }
 
-@media (max-width: 768px) {
+@media (max-width: 860px) {
   .admin-aside {
-    width: 64px !important;
+    width: 70px !important;
   }
-  .admin-aside .menu-icon {
-    margin-right: 0;
-  }
-  .admin-aside .el-menu-item span:last-child {
+  .brand-text {
     display: none;
   }
-  .admin-brand {
-    font-size: 20px;
-    padding: 16px 8px;
-    text-align: center;
+  .nav-label {
+    display: none;
   }
-  .admin-header {
-    padding: 0 12px;
+  .nav-item {
+    justify-content: center;
+    padding: 12px;
+  }
+  .nav-icon {
+    margin: 0;
+  }
+  .aside-brand {
+    justify-content: center;
+    padding: 16px 8px;
   }
   .admin-main {
     padding: 16px;
+  }
+  .admin-header {
+    padding: 0 16px;
   }
 }
 </style>

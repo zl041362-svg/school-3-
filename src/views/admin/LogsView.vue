@@ -1,6 +1,7 @@
 <script setup>
 import { computed, onMounted, ref } from 'vue'
 import PageContainer from '@/components/PageContainer.vue'
+import ErrorAlert from '@/components/ErrorAlert.vue'
 import { useAdminModerationStore } from '@/stores/adminModeration'
 
 const moderationStore = useAdminModerationStore()
@@ -48,14 +49,6 @@ function handlePageChange(page) {
 }
 
 function refreshWithFilters() {
-  const params = {}
-  if (filterAction.value) params.action = filterAction.value
-  if (dateRange.value && dateRange.value.length === 2) {
-    const start = typeof dateRange.value[0] === 'string' ? dateRange.value[0] : dateRange.value[0].toISOString().slice(0, 10)
-    const end = typeof dateRange.value[1] === 'string' ? dateRange.value[1] : dateRange.value[1].toISOString().slice(0, 10)
-    params.dateFrom = start
-    params.dateTo = end
-  }
   moderationStore.hydrateSection('logs')
 }
 
@@ -70,15 +63,11 @@ onMounted(() => {
       <el-button @click="moderationStore.hydrateSection('logs')">刷新</el-button>
     </template>
 
-    <el-alert
-      v-if="moderationStore.error"
-      type="warning" show-icon :closable="false"
-      :title="moderationStore.error" style="margin-bottom: 16px"
-    />
+    <ErrorAlert v-if="moderationStore.error" :message="moderationStore.error" />
 
-    <div style="display: flex; gap: 12px; margin-bottom: 16px; flex-wrap: wrap; align-items: center">
+    <div class="filter-bar">
       <el-input v-model="searchKeyword" placeholder="搜索操作人/操作/详情" style="max-width: 260px" clearable />
-      <el-select v-model="filterAction" placeholder="操作类型" style="width: 180px" clearable>
+      <el-select v-model="filterAction" placeholder="操作类型" style="width: 200px" clearable>
         <el-option v-for="a in actionOptions" :key="a" :label="a" :value="a" />
       </el-select>
       <el-date-picker v-model="dateRange" type="daterange" range-separator="至" start-placeholder="开始日期" end-placeholder="结束日期" style="width: 260px" />
@@ -96,7 +85,7 @@ onMounted(() => {
       </template>
     </el-table>
 
-    <div v-if="pagination.total > pagination.pageSize" style="text-align: center; margin-top: 16px">
+    <div v-if="pagination.total > pagination.pageSize" style="text-align: center; margin-top: 20px">
       <el-pagination
         :current-page="pagination.page" :page-size="pagination.pageSize"
         :total="pagination.total" layout="prev, pager, next"
@@ -105,3 +94,13 @@ onMounted(() => {
     </div>
   </PageContainer>
 </template>
+
+<style scoped>
+.filter-bar {
+  display: flex;
+  gap: 10px;
+  margin-bottom: 20px;
+  flex-wrap: wrap;
+  align-items: center;
+}
+</style>

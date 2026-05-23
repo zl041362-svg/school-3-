@@ -28,6 +28,7 @@ import {
 } from '@/mocks/admin'
 import { resolveItems, resolvePagination } from '@/utils/apiResponse'
 import { readJsonStorage, writeJsonStorage } from '@/utils/storage'
+import { allowMockFallback } from '@/utils/mockControl'
 
 const ADMIN_STORAGE_KEY = 'ZHHS_ADMIN_MODERATION'
 const SECTION_KEYS = [
@@ -57,6 +58,9 @@ const SECTION_CONFIG = {
 const DEFAULT_PAGINATION = { total: 0, page: 1, pageSize: 20 }
 
 function createDefaultState() {
+  if (!allowMockFallback()) {
+    return Object.fromEntries(SECTION_KEYS.map((section) => [section, []]))
+  }
   return Object.fromEntries(
     SECTION_KEYS.map((section) => [section, structuredClone(SECTION_CONFIG[section].fallback)]),
   )
@@ -131,13 +135,18 @@ export const useAdminModerationStore = defineStore('adminModeration', {
 
       try {
         const result = await config.fetch(params)
-        this[section] = resolveItems(result, config.fallback)
+        this[section] = resolveItems(result, allowMockFallback() ? config.fallback : [])
         this.paginationMap[section] = resolvePagination(result)
         this.persist()
       } catch (error) {
-        const fallback = readStorage()[section] || createSectionFallback(section)
-        this[section] = fallback
-        this.error = error.message || '管理端接口不可用，已使用本地数据。'
+        if (allowMockFallback()) {
+          const fallback = readStorage()[section] || createSectionFallback(section)
+          this[section] = fallback
+          this.error = error.message || '管理端接口不可用，已使用本地数据。'
+        } else {
+          this.error = error.message || '数据加载失败'
+          throw error
+        }
       } finally {
         this.loadingMap[section] = false
       }

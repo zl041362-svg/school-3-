@@ -2,6 +2,7 @@
 import { computed, onMounted, reactive, ref } from 'vue'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import PageContainer from '@/components/PageContainer.vue'
+import ErrorAlert from '@/components/ErrorAlert.vue'
 import { useAdminModerationStore } from '@/stores/adminModeration'
 import { createAdminRoleApi, deleteAdminRoleApi, editAdminRoleApi, updateAdminRoleApi } from '@/api/modules/admin'
 
@@ -74,14 +75,7 @@ onMounted(() => {
       <el-button @click="moderationStore.hydrateSection('roles')">刷新</el-button>
     </template>
 
-    <el-alert
-      v-if="moderationStore.error"
-      type="warning"
-      show-icon
-      :closable="false"
-      :title="moderationStore.error"
-      style="margin-bottom: 16px"
-    />
+    <ErrorAlert v-if="moderationStore.error" :message="moderationStore.error" />
 
     <el-table v-loading="moderationStore.loadingMap?.roles" :data="rows" border>
       <el-table-column prop="role" label="角色名称" />

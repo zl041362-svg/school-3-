@@ -1,3 +1,7 @@
+/* ═══════════════════════════════════════════
+   智慧三农 — 全局基础样式
+   ═══════════════════════════════════════════ */
+
 * {
   box-sizing: border-box;
 }
@@ -11,9 +15,26 @@ body,
 }
 
 body {
-  font-family: 'Segoe UI', 'Helvetica Neue', sans-serif;
-  background: radial-gradient(circle at 20% 10%, #ecfeff, #f6f9fb 45%, #eef2f7);
-  color: var(--zhhs-text);
+  font-family: var(--font-body);
+  background: var(--color-cream);
+  color: var(--color-text);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  line-height: 1.6;
+  letter-spacing: 0.01em;
+}
+
+/* ── 稻纹背景纹理 ── */
+body::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  z-index: -1;
+  opacity: 0.03;
+  background-image:
+    repeating-linear-gradient(0deg, transparent, transparent 2px, rgba(74, 55, 40, 0.3) 2px, rgba(74, 55, 40, 0.3) 2.5px),
+    repeating-linear-gradient(90deg, transparent, transparent 40px, rgba(74, 55, 40, 0.15) 40px, rgba(74, 55, 40, 0.15) 41px);
+  pointer-events: none;
 }
 
 a {
@@ -21,11 +42,39 @@ a {
   text-decoration: none;
 }
 
+h1, h2, h3, h4, h5, h6 {
+  font-family: var(--font-display);
+  font-weight: 700;
+  letter-spacing: 0.02em;
+}
+
+/* ── 滚动条 ── */
+::-webkit-scrollbar { width: 6px; height: 6px; }
+::-webkit-scrollbar-track { background: var(--color-cream-dark); }
+::-webkit-scrollbar-thumb {
+  background: var(--color-terracotta-soft);
+  border-radius: 3px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: var(--color-terracotta);
+}
+
+/* ── 选中色 ── */
+::selection {
+  background: var(--color-amber-glow);
+  color: var(--color-soil);
+}
+
+/* ═══════════════════════════════════════════
+   页面容器
+   ═══════════════════════════════════════════ */
+
 .page-container {
-  padding: 20px;
-  border-radius: var(--zhhs-radius);
-  background: var(--zhhs-surface);
-  box-shadow: var(--zhhs-shadow);
+  padding: 28px;
+  border-radius: var(--radius-lg);
+  background: var(--color-paper-white);
+  box-shadow: var(--shadow-card);
+  border: 1px solid var(--color-border-light);
 }
 
 .page-header {
@@ -33,38 +82,54 @@ a {
   justify-content: space-between;
   align-items: center;
   gap: 16px;
-  margin-bottom: 18px;
+  margin-bottom: 24px;
 }
 
 .page-title {
   margin: 0;
-  font-size: 22px;
+  font-size: 26px;
+  font-family: var(--font-display);
+  color: var(--color-soil);
 }
 
 .page-description {
   margin: 6px 0 0;
-  color: var(--zhhs-muted);
+  color: var(--color-text-soft);
+  font-size: 14px;
 }
 
 .page-body {
-  border-top: 1px solid var(--zhhs-border);
-  padding-top: 16px;
+  border-top: 1px solid var(--color-border-light);
+  padding-top: 20px;
 }
+
+/* ═══════════════════════════════════════════
+   认证布局
+   ═══════════════════════════════════════════ */
 
 .auth-layout {
   min-height: 100vh;
   display: grid;
   place-items: center;
   padding: 24px;
+  background:
+    radial-gradient(ellipse at 20% 50%, rgba(232, 200, 176, 0.15) 0%, transparent 50%),
+    radial-gradient(ellipse at 80% 50%, rgba(213, 223, 197, 0.12) 0%, transparent 50%),
+    var(--color-cream);
 }
 
 .auth-panel {
   width: min(480px, 100%);
-  background: var(--zhhs-surface);
-  border-radius: var(--zhhs-radius);
-  box-shadow: var(--zhhs-shadow);
-  padding: 24px;
+  background: var(--color-paper-white);
+  border-radius: var(--radius-xl);
+  box-shadow: var(--shadow-lg);
+  border: 1px solid var(--color-border-light);
+  padding: 36px 32px;
 }
+
+/* ═══════════════════════════════════════════
+   商城布局
+   ═══════════════════════════════════════════ */
 
 .shop-layout {
   min-height: 100vh;
@@ -75,15 +140,17 @@ a {
   align-items: center;
   justify-content: space-between;
   gap: 20px;
-  border-bottom: 1px solid var(--zhhs-border);
-  background: rgba(255, 255, 255, 0.8);
-  backdrop-filter: blur(8px);
+  border-bottom: 1px solid var(--color-border-light);
+  background: rgba(255, 252, 247, 0.85);
+  backdrop-filter: blur(16px) saturate(180%);
+  -webkit-backdrop-filter: blur(16px) saturate(180%);
 }
 
 .brand {
   font-size: 20px;
   font-weight: 700;
-  color: var(--zhhs-primary);
+  font-family: var(--font-display);
+  color: var(--color-terracotta);
   cursor: pointer;
 }
 
@@ -93,7 +160,7 @@ a {
 }
 
 .shop-nav .router-link-active {
-  color: var(--zhhs-primary);
+  color: var(--color-terracotta);
   font-weight: 600;
 }
 
@@ -103,34 +170,44 @@ a {
 }
 
 .shop-footer {
-  border-top: 1px solid var(--zhhs-border);
+  border-top: 1px solid var(--color-border-light);
   text-align: center;
-  color: var(--zhhs-muted);
+  color: var(--color-text-muted);
+  background: var(--color-paper);
 }
+
+/* ═══════════════════════════════════════════
+   管理后台布局
+   ═══════════════════════════════════════════ */
 
 .admin-layout {
   min-height: 100vh;
 }
 
 .admin-aside {
-  border-right: 1px solid var(--zhhs-border);
-  background: #ffffff;
+  border-right: 1px solid var(--color-border-light);
+  background: var(--color-paper-white);
 }
 
 .admin-brand {
   padding: 20px;
   font-size: 18px;
   font-weight: 700;
-  color: var(--zhhs-primary);
+  font-family: var(--font-display);
+  color: var(--color-soil);
 }
 
 .admin-header {
-  border-bottom: 1px solid var(--zhhs-border);
+  border-bottom: 1px solid var(--color-border-light);
   display: flex;
   align-items: center;
   justify-content: space-between;
-  background: #ffffff;
+  background: var(--color-paper-white);
 }
+
+/* ═══════════════════════════════════════════
+   通用工具类
+   ═══════════════════════════════════════════ */
 
 .center-screen {
   min-height: 60vh;
@@ -138,6 +215,39 @@ a {
   place-items: center;
 }
 
+/* ── 元素级入场动画 ── */
+@keyframes fadeUp {
+  from {
+    opacity: 0;
+    transform: translateY(24px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes scaleIn {
+  from {
+    opacity: 0;
+    transform: scale(0.94);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+.animate-fade-up {
+  animation: fadeUp 0.6s var(--ease-out) both;
+}
+
+/* ── 响应式 ── */
 @media (max-width: 960px) {
   .shop-header {
     flex-wrap: wrap;
@@ -153,10 +263,10 @@ a {
 
 @media (max-width: 768px) {
   .page-container {
-    padding: 12px;
+    padding: 16px;
   }
   .page-title {
-    font-size: 18px;
+    font-size: 20px;
   }
   .shop-main,
   .admin-main {

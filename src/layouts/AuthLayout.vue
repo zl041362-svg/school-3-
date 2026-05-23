@@ -1,12 +1,17 @@
 <template>
   <div class="auth-layout">
-    <div class="auth-box">
+    <div class="auth-bg">
+      <div class="auth-orb orb-1"></div>
+      <div class="auth-orb orb-2"></div>
+      <div class="auth-orb orb-3"></div>
+    </div>
+    <div class="auth-wrapper">
       <div class="auth-brand">
-        <div class="auth-logo">🌾</div>
-        <h1>智慧三农</h1>
-        <p>农产品产销直连平台</p>
+        <div class="brand-glyph">丰</div>
+        <h1 class="brand-name">智慧三农</h1>
+        <p class="brand-tagline">农产品产销直连 · 从田间到餐桌</p>
       </div>
-      <div class="auth-panel">
+      <div class="auth-card">
         <RouterView />
       </div>
     </div>
@@ -16,56 +21,114 @@
 <style scoped>
 .auth-layout {
   min-height: 100vh;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  background: linear-gradient(135deg, #e8f5e9 0%, #c8e6c9 100%);
+  position: relative;
+  display: grid;
+  place-items: center;
+  padding: 24px;
+  background: var(--color-cream);
 }
-.auth-box {
+
+/* Ambient background */
+.auth-bg {
+  position: fixed;
+  inset: 0;
+  overflow: hidden;
+  pointer-events: none;
+}
+.auth-orb {
+  position: absolute;
+  border-radius: 50%;
+  filter: blur(100px);
+}
+.orb-1 {
+  width: 400px;
+  height: 400px;
+  background: rgba(212, 151, 59, 0.1);
+  top: -100px;
+  right: -80px;
+}
+.orb-2 {
+  width: 320px;
+  height: 320px;
+  background: rgba(193, 114, 69, 0.08);
+  bottom: -80px;
+  left: -60px;
+}
+.orb-3 {
+  width: 240px;
+  height: 240px;
+  background: rgba(139, 157, 107, 0.08);
+  top: 50%;
+  left: 40%;
+}
+
+.auth-wrapper {
+  position: relative;
+  z-index: 1;
   display: flex;
-  gap: 48px;
+  gap: 56px;
   align-items: center;
-  max-width: 880px;
+  max-width: 920px;
   width: 100%;
-  padding: 0 24px;
 }
+
+/* Brand panel */
 .auth-brand {
   flex: 1;
   text-align: center;
-  color: var(--zhhs-primary, #2e7d32);
 }
-.auth-logo {
-  font-size: 64px;
-  margin-bottom: 12px;
+.brand-glyph {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 72px;
+  height: 72px;
+  margin-bottom: 16px;
+  background: linear-gradient(135deg, var(--color-terracotta), var(--color-amber));
+  color: #fff;
+  font-family: var(--font-display);
+  font-size: 36px;
+  font-weight: 900;
+  border-radius: 18px;
+  box-shadow: 0 8px 32px rgba(193, 114, 69, 0.3);
 }
-.auth-brand h1 {
-  font-size: 32px;
+.brand-name {
   margin: 0 0 8px;
-  font-weight: 700;
+  font-family: var(--font-display);
+  font-size: 36px;
+  font-weight: 900;
+  color: var(--color-soil);
+  letter-spacing: 0.04em;
 }
-.auth-brand p {
+.brand-tagline {
   margin: 0;
-  opacity: 0.8;
   font-size: 15px;
+  color: var(--color-text-soft);
+  line-height: 1.6;
 }
-.auth-panel {
+
+/* Card panel */
+.auth-card {
   flex: 1;
-  background: #fff;
-  border-radius: 12px;
-  box-shadow: 0 4px 24px rgba(0, 0, 0, 0.1);
-  padding: 40px 36px;
-  min-width: 360px;
+  background: var(--color-paper-white);
+  border: 1px solid var(--color-border-light);
+  border-radius: var(--radius-xl);
+  box-shadow: var(--shadow-lg);
+  padding: 36px 32px;
+  min-width: 400px;
 }
-@media (max-width: 700px) {
-  .auth-box {
+
+@media (max-width: 760px) {
+  .auth-wrapper {
     flex-direction: column;
-    gap: 24px;
+    gap: 28px;
   }
   .auth-brand {
     display: none;
   }
-  .auth-panel {
+  .auth-card {
     min-width: 0;
+    width: 100%;
     padding: 28px 20px;
   }
 }

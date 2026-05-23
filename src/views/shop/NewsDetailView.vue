@@ -5,6 +5,9 @@ import { ElMessage, ElMessageBox } from 'element-plus'
 import { getNewsDetailApi, toggleFavoriteApi, getFavoriteStatusApi } from '@/api/modules/news'
 import { mockNews } from '@/mocks/shop'
 import { useAuthStore } from '@/stores/auth'
+import EmptyState from '@/components/EmptyState.vue'
+import ErrorAlert from '@/components/ErrorAlert.vue'
+import LoadingState from '@/components/LoadingState.vue'
 
 const route = useRoute()
 const router = useRouter()
@@ -42,7 +45,7 @@ async function loadArticle() {
       const r = await getFavoriteStatusApi(route.params.id)
       isFavorited.value = r.favorited
     } catch {
-      // ignore - favorite status is optional
+      // ignore
     }
   }
 }
@@ -88,82 +91,148 @@ onMounted(loadArticle)
       <el-breadcrumb-item>{{ article?.title || '资讯详情' }}</el-breadcrumb-item>
     </el-breadcrumb>
 
-    <el-alert
-      v-if="error"
-      type="warning"
-      show-icon
-      :closable="false"
-      :title="error"
-      style="margin-bottom: 16px"
-    />
-    <el-skeleton v-if="loading" :rows="6" animated />
-    <el-empty v-else-if="!article" description="资讯不存在或已下架">
+    <ErrorAlert v-if="error" :message="error" />
+    <LoadingState v-if="loading" :rows="6" />
+    <EmptyState v-else-if="!article" description="资讯不存在或已下架">
       <template #extra>
         <el-button @click="router.push('/news')">返回资讯列表</el-button>
       </template>
-    </el-empty>
+    </EmptyState>
 
-    <el-card v-else class="article-card">
+    <div v-else class="article-card">
       <h1 class="article-title">{{ article.title }}</h1>
       <div class="article-meta">
-        <el-tag type="success" size="small">{{ article.category || '三农资讯' }}</el-tag>
+        <span class="meta-category">{{ article.category || '三农资讯' }}</span>
+        <span class="meta-divider">·</span>
         <span>作者：{{ article.author }}</span>
-        <span>发布时间：{{ article.publishedAt || '-' }}</span>
+        <span class="meta-divider">·</span>
+        <span>{{ article.publishedAt || '-' }}</span>
       </div>
       <el-divider />
       <div class="article-summary">{{ article.summary }}</div>
       <div class="article-content">{{ article.content }}</div>
       <el-divider />
       <div class="article-actions">
-        <el-button :type="isFavorited ? 'warning' : ''" :loading="favoring" @click="handleFavorite">
-          {{ isFavorited ? '⭐ 已收藏' : '☆ 收藏' }}
-        </el-button>
-        <el-button @click="handleShare">🔗 分享</el-button>
-        <el-button text @click="router.push('/news')">← 返回列表</el-button>
+        <button
+          class="action-btn"
+          :class="{ favorited: isFavorited }"
+          :disabled="favoring"
+          @click="handleFavorite"
+        >
+          <span v-if="favoring" class="btn-spinner"></span>
+          <span v-else>{{ isFavorited ? '★ 已收藏' : '☆ 收藏' }}</span>
+        </button>
+        <button class="action-btn share" @click="handleShare">🔗 分享</button>
+        <button class="back-link" @click="router.push('/news')">← 返回列表</button>
       </div>
-    </el-card>
+    </div>
   </div>
 </template>
 
 <style scoped>
 .news-detail-page {
   padding-bottom: 32px;
-}
-.article-card {
   max-width: 860px;
 }
+
+.article-card {
+  background: var(--color-paper-white);
+  border: 1px solid var(--color-border-light);
+  border-radius: var(--radius-lg);
+  padding: 32px;
+}
 .article-title {
-  font-size: 26px;
-  font-weight: 700;
   margin: 0 0 16px;
+  font-family: var(--font-display);
+  font-size: 28px;
+  font-weight: 800;
+  color: var(--color-soil);
   line-height: 1.4;
 }
 .article-meta {
   display: flex;
-  gap: 16px;
+  gap: 10px;
   align-items: center;
-  color: #999;
+  color: var(--color-text-muted);
   font-size: 13px;
   flex-wrap: wrap;
 }
+.meta-category {
+  padding: 2px 12px;
+  border-radius: var(--radius-full);
+  background: var(--color-terracotta-soft);
+  color: var(--color-terracotta);
+  font-size: 12px;
+  font-weight: 600;
+}
+.meta-divider {
+  color: var(--color-border);
+}
+
 .article-summary {
-  color: #555;
+  color: var(--color-text-soft);
   font-size: 15px;
   margin-bottom: 20px;
-  padding: 12px 16px;
-  background: #f8f9fa;
-  border-left: 3px solid var(--zhhs-primary, #2e7d32);
-  border-radius: 4px;
+  padding: 16px 20px;
+  background: var(--color-cream);
+  border-left: 4px solid var(--color-amber);
+  border-radius: 0 var(--radius-sm) var(--radius-sm) 0;
+  line-height: 1.7;
 }
 .article-content {
-  color: #333;
+  color: var(--color-text);
   font-size: 15px;
   line-height: 1.8;
   white-space: pre-wrap;
 }
+
 .article-actions {
   display: flex;
   gap: 12px;
   align-items: center;
+}
+.action-btn {
+  padding: 8px 20px;
+  border-radius: var(--radius-full);
+  border: 1.5px solid var(--color-border);
+  background: var(--color-paper-white);
+  color: var(--color-text-soft);
+  font-size: 13px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.25s var(--ease-smooth);
+}
+.action-btn:hover {
+  border-color: var(--color-terracotta);
+  color: var(--color-terracotta);
+}
+.action-btn.favorited {
+  border-color: var(--color-amber);
+  background: var(--color-amber-glow);
+  color: var(--color-soil);
+}
+.btn-spinner {
+  display: inline-block;
+  width: 14px;
+  height: 14px;
+  border: 2px solid rgba(0,0,0,0.2);
+  border-top-color: var(--color-soil);
+  border-radius: 50%;
+  animation: spin 0.6s linear infinite;
+}
+@keyframes spin { to { transform: rotate(360deg); } }
+
+.back-link {
+  padding: 8px 16px;
+  border: none;
+  background: transparent;
+  color: var(--color-text-muted);
+  font-size: 13px;
+  cursor: pointer;
+  transition: color 0.2s;
+  margin-left: auto;
+}
+.back-link:hover {
+  color: var(--color-terracotta);
 }
 </style>

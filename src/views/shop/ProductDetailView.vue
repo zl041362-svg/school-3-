@@ -1,17 +1,19 @@
 <script setup>
 import { computed, onMounted, ref, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
-import { ElMessage, ElMessageBox } from 'element-plus'
-import { getProductDetailApi, getProductEvaluationsApi, canReviewProductApi, createProductEvaluationApi, deleteProductEvaluationApi } from '@/api/modules/products'
+import { ElMessage } from 'element-plus'
+import { getProductDetailApi } from '@/api/modules/products'
 import { mockProducts } from '@/mocks/shop'
 import { useCartStore } from '@/stores/cart'
-import { useAuthStore } from '@/stores/auth'
 import { readJsonStorage, writeJsonStorage } from '@/utils/storage'
+import ErrorAlert from '@/components/ErrorAlert.vue'
+import EmptyState from '@/components/EmptyState.vue'
+import LoadingState from '@/components/LoadingState.vue'
+import ProductEvaluations from '@/components/shop/ProductEvaluations.vue'
 
 const route = useRoute()
 const router = useRouter()
 const cartStore = useCartStore()
-const authStore = useAuthStore()
 const loading = ref(false)
 const error = ref('')
 const quantity = ref(1)
@@ -19,16 +21,7 @@ const adding = ref(false)
 const buying = ref(false)
 const product = ref(null)
 const activeTab = ref('overview')
-
-const evaluations = ref([])
-const evalTotal = ref(0)
-const evalPage = ref(1)
-const avgRating = ref(0)
-const evalCount = ref(0)
-const canReview = ref(false)
-const myEvalId = ref(null)
-const evalSaving = ref(false)
-const evalForm = ref({ rating: 0, content: '' })
+const evalRef = ref(null)
 
 const maxQuantity = computed(() => Math.max(product.value?.stock || 1, 1))
 
@@ -56,7 +49,7 @@ function saveRecentView(p) {
     if (list.length > 10) list = list.slice(0, 10)
     writeJsonStorage(KEY, list)
   } catch {
-    // localStorage unavailable - ignore
+    // localStorage unavailable
   }
 }
 
@@ -82,118 +75,58 @@ async function handleBuyNow() {
   router.push('/checkout')
 }
 
-async function loadEvaluations() {
-  try {
-    const r = await getProductEvaluationsApi(route.params.id, { page: evalPage.value, pageSize: 5 })
-    evaluations.value = r.items || []
-    evalTotal.value = r.total || 0
-    avgRating.value = r.avgRating || 0
-    evalCount.value = r.count || 0
-  } catch {
-    // evaluations are optional - ignore load failures
-  }
-  if (authStore.isAuthenticated) {
-    try {
-      const r = await canReviewProductApi(route.params.id)
-      canReview.value = r.canReview
-    } catch {
-      // canReview is optional - default to false
-    }
-    if (evaluations.value.length > 0) {
-      const mine = evaluations.value.find((e) => e.userId === authStore.user?.id)
-      if (mine) myEvalId.value = mine.id
-    }
+function handleTabChange(tab) {
+  if (tab === 'eval') {
+    evalRef.value?.loadEvaluations()
   }
 }
 
-async function submitEval() {
-  if (!evalForm.value.rating) { ElMessage.warning('请选择评分'); return }
-  evalSaving.value = true
-  try {
-    await createProductEvaluationApi(route.params.id, { rating: evalForm.value.rating, content: evalForm.value.content })
-    ElMessage.success('评价提交成功')
-    evalForm.value = { rating: 0, content: '' }
-    evalPage.value = 1
-    await loadEvaluations()
-  } catch (err) {
-    ElMessage.error(err?.message || '评价提交失败')
-  } finally {
-    evalSaving.value = false
-  }
-}
-
-async function deleteEval(id) {
-  try {
-    await ElMessageBox.confirm('确认删除该评价？', '提示', { type: 'warning' })
-  } catch {
-    return
-  }
-  try {
-    await deleteProductEvaluationApi(id)
-    ElMessage.success('评价已删除')
-    myEvalId.value = null
-    await loadEvaluations()
-  } catch (err) {
-    ElMessage.error(err?.message || '删除失败')
-  }
-}
-
-function handleEvalPageChange(page) {
-  evalPage.value = page
-  loadEvaluations()
-}
-
-onMounted(() => { loadProduct(); loadEvaluations() })
-watch(() => route.params.id, () => { loadProduct(); loadEvaluations() })
+onMounted(loadProduct)
+watch(() => route.params.id, loadProduct)
 </script>
 
 <template>
   <div class="product-detail-page">
-    <!-- 面包屑屑导航 -->
     <el-breadcrumb separator="/" style="margin-bottom: 20px">
       <el-breadcrumb-item :to="{ path: '/' }">首页</el-breadcrumb-item>
       <el-breadcrumb-item :to="{ path: '/products' }">商品列表</el-breadcrumb-item>
       <el-breadcrumb-item>{{ product?.name || '商品详情' }}</el-breadcrumb-item>
     </el-breadcrumb>
 
-    <el-alert
-      v-if="error"
-      type="warning"
-      show-icon
-      :closable="false"
-      :title="error"
-      style="margin-bottom: 16px"
-    />
-    <el-skeleton v-if="loading" :rows="8" animated />
-    <el-empty v-else-if="!product" description="商品不存在或已下架">
+    <ErrorAlert :message="error" />
+    <LoadingState v-if="loading" :rows="8" />
+    <EmptyState v-else-if="!product" description="商品不存在或已下架">
       <template #extra>
         <el-button @click="router.push('/products')">返回商品列表</el-button>
       </template>
-    </el-empty>
+    </EmptyState>
 
     <div v-if="product" class="detail-body">
       <div class="detail-left">
-        <div class="product-img-box">🌿</div>
+        <div class="product-img-box">
+          <span class="product-emoji">{{ product.category === '水果' ? '🍎' : product.category === '蔬菜' ? '🥦' : product.category === '粮油' ? '🌾' : product.category === '茶饮' ? '🍵' : product.category === '肉禽蛋' ? '🥩' : product.category === '水产' ? '🐟' : '🌿' }}</span>
+        </div>
       </div>
       <div class="detail-right">
         <h1 class="detail-name">{{ product.name }}</h1>
         <div class="detail-meta">
-          <el-tag type="success">产地：{{ product.region }}</el-tag>
-          <el-tag>分类：{{ product.category || '农产品' }}</el-tag>
-          <el-tag v-if="product.farmer" type="info">农户：{{ product.farmer }}</el-tag>
+          <span class="meta-tag">产地：{{ product.region }}</span>
+          <span class="meta-tag">分类：{{ product.category || '农产品' }}</span>
+          <span v-if="product.farmer" class="meta-tag">农户：{{ product.farmer }}</span>
         </div>
         <div class="detail-price">
-          ￥<span>{{ Number(product.price).toFixed(2) }}</span>
+          <span class="price-unit">¥</span>
+          <span class="price-num">{{ Number(product.price).toFixed(2) }}</span>
         </div>
         <div class="detail-purchase">
-          <div class="detail-stock">
-            库存：
+          <div class="purchase-row">
+            <span class="purchase-label">库存</span>
             <el-tag :type="product.stock > 0 ? 'success' : 'danger'">
-              {{ product.stock > 0 ? `${product.stock}件` : '已售罄' }}
+              {{ product.stock > 0 ? `${product.stock} 件` : '已售罄' }}
             </el-tag>
           </div>
-          <div class="detail-qty">
-            <span>数量：</span>
+          <div class="purchase-row">
+            <span class="purchase-label">数量</span>
             <el-input-number
               v-model="quantity"
               :min="1"
@@ -201,35 +134,36 @@ watch(() => route.params.id, () => { loadProduct(); loadEvaluations() })
               :disabled="product.stock <= 0"
             />
           </div>
-          <div class="detail-actions">
-            <el-button
-              type="primary"
-              size="large"
-              :disabled="product.stock <= 0"
-              :loading="buying"
+          <div class="purchase-actions">
+            <button
+              class="btn-buy"
+              :disabled="product.stock <= 0 || buying"
               @click="handleBuyNow"
-              >立即购买</el-button
             >
-            <el-button
-              size="large"
-              :disabled="product.stock <= 0"
-              :loading="adding"
+              <span v-if="buying" class="btn-spinner"></span>
+              <span v-else>立即购买</span>
+            </button>
+            <button
+              class="btn-cart"
+              :disabled="product.stock <= 0 || adding"
               @click="handleAddToCart"
-              >加入购物车</el-button
             >
+              <span v-if="adding" class="btn-spinner"></span>
+              <span v-else>加入购物车</span>
+            </button>
           </div>
         </div>
       </div>
     </div>
 
-    <el-tabs v-if="product" v-model="activeTab" class="product-tabs">
+    <el-tabs v-if="product" v-model="activeTab" class="product-tabs" @tab-change="handleTabChange">
       <el-tab-pane label="商品概述" name="overview">
         <div class="tab-content">
           <p class="tab-summary">{{ product.summary }}</p>
           <div class="tab-tags">
-            <el-tag type="success">产地：{{ product.region }}</el-tag>
-            <el-tag>分类：{{ product.category || '农产品' }}</el-tag>
-            <el-tag v-if="product.farmer" type="info">农户：{{ product.farmer }}</el-tag>
+            <span class="meta-tag">产地：{{ product.region }}</span>
+            <span class="meta-tag">分类：{{ product.category || '农产品' }}</span>
+            <span v-if="product.farmer" class="meta-tag">农户：{{ product.farmer }}</span>
           </div>
         </div>
       </el-tab-pane>
@@ -250,61 +184,8 @@ watch(() => route.params.id, () => { loadProduct(); loadEvaluations() })
           </el-descriptions>
         </div>
       </el-tab-pane>
-      <el-tab-pane :label="'商品评价 (' + evalCount + ')'" name="eval">
-        <div class="eval-summary">
-          <el-rate v-model="avgRating" disabled show-score text-color="#ff9900" />
-          <span class="eval-count">({{ evalCount }} 条)</span>
-        </div>
-
-      <el-card v-if="authStore.isAuthenticated && canReview && !myEvalId" class="eval-form-card">
-        <template #header>写评价</template>
-        <div class="eval-form">
-          <div class="eval-form-rate">
-            <span>评分：</span>
-            <el-rate v-model="evalForm.rating" />
-          </div>
-          <el-input
-            v-model="evalForm.content"
-            type="textarea"
-            :rows="3"
-            placeholder="分享你的使用体验..."
-            maxlength="500"
-            show-word-limit
-          />
-          <el-button type="primary" :loading="evalSaving" style="margin-top: 12px" @click="submitEval">提交评价</el-button>
-        </div>
-      </el-card>
-
-      <el-alert v-else-if="authStore.isAuthenticated && myEvalId" type="info" show-icon :closable="false" style="margin-bottom: 12px">
-        <template #title>
-          你已经评价过该商品
-          <el-button text type="danger" size="small" style="margin-left: 8px" @click="deleteEval(myEvalId)">删除重评</el-button>
-        </template>
-      </el-alert>
-
-      <el-empty v-if="!evaluations.length && evalCount === 0" description="暂无评价，快来抢沙发吧" />
-
-      <div v-else class="eval-list">
-        <div v-for="e in evaluations" :key="e.id" class="eval-item">
-          <div class="eval-item-header">
-            <span class="eval-user">{{ e.userName || '匿名用户' }}</span>
-            <el-rate v-model="e.rating" disabled size="small" />
-            <span class="eval-time">{{ e.createdAt || '' }}</span>
-          </div>
-          <p v-if="e.content" class="eval-content">{{ e.content }}</p>
-          <el-button v-if="authStore.user?.id === e.userId" text type="danger" size="small" @click="deleteEval(e.id)">删除</el-button>
-        </div>
-      </div>
-
-      <div v-if="evalTotal > 5" style="text-align: center; margin-top: 16px">
-        <el-pagination
-          :current-page="evalPage"
-          :page-size="5"
-          :total="evalTotal"
-          layout="prev, pager, next"
-          @current-change="handleEvalPageChange"
-        />
-      </div>
+      <el-tab-pane :label="'商品评价'" name="eval">
+        <ProductEvaluations ref="evalRef" :product-id="route.params.id" />
       </el-tab-pane>
     </el-tabs>
   </div>
@@ -314,114 +195,156 @@ watch(() => route.params.id, () => { loadProduct(); loadEvaluations() })
 .product-detail-page {
   padding-bottom: 32px;
 }
+
 .detail-body {
   display: flex;
-  gap: 40px;
+  gap: 48px;
+  margin-bottom: 24px;
 }
 .detail-left {
   flex-shrink: 0;
 }
 .product-img-box {
-  width: 380px;
-  height: 320px;
-  background: #e8f5e9;
-  border-radius: 12px;
+  width: 400px;
+  height: 340px;
+  background: linear-gradient(160deg, var(--color-cream-dark), var(--color-paper));
+  border-radius: var(--radius-lg);
+  border: 1px solid var(--color-border-light);
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 96px;
 }
+.product-emoji {
+  font-size: 100px;
+}
+
 .detail-right {
   flex: 1;
   min-width: 0;
 }
 .detail-name {
-  font-size: 24px;
-  font-weight: 700;
   margin: 0 0 12px;
+  font-family: var(--font-display);
+  font-size: 28px;
+  font-weight: 800;
+  color: var(--color-soil);
 }
 .detail-meta {
   display: flex;
   gap: 8px;
-  margin-bottom: 16px;
+  margin-bottom: 20px;
+  flex-wrap: wrap;
 }
+.meta-tag {
+  padding: 4px 14px;
+  border-radius: var(--radius-full);
+  background: var(--color-cream-dark);
+  color: var(--color-text-soft);
+  font-size: 13px;
+  font-weight: 500;
+  border: 1px solid var(--color-border-light);
+}
+
 .detail-price {
-  font-size: 14px;
-  color: #e53935;
-  margin-bottom: 12px;
+  display: flex;
+  align-items: baseline;
+  gap: 4px;
+  margin-bottom: 24px;
+  color: var(--color-berry);
 }
-.detail-price span {
-  font-size: 32px;
+.price-unit {
+  font-size: 18px;
   font-weight: 700;
 }
-.detail-summary {
-  color: #555;
-  margin-bottom: 8px;
+.price-num {
+  font-family: var(--font-display);
+  font-size: 40px;
+  font-weight: 900;
 }
-.detail-desc {
-  color: #777;
-  font-size: 14px;
-}
+
 .detail-purchase {
-  background: #f9fafb;
-  border: 1px solid #eee;
-  border-radius: 10px;
-  padding: 16px;
-  margin-top: 20px;
+  background: var(--color-cream);
+  border: 1px solid var(--color-border-light);
+  border-radius: var(--radius-lg);
+  padding: 20px 24px;
 }
-.detail-stock {
-  margin-bottom: 8px;
-  font-size: 14px;
+.purchase-row {
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: 12px;
+  margin-bottom: 14px;
 }
-.detail-qty {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  margin-bottom: 16px;
-  color: #555;
+.purchase-label {
   font-size: 14px;
+  color: var(--color-text-soft);
+  min-width: 40px;
 }
-.detail-actions {
+.purchase-actions {
   display: flex;
   gap: 12px;
   margin-top: 20px;
 }
-@media (max-width: 700px) {
-  .detail-body {
-    flex-direction: column;
-  }
-  .product-img-box {
-    width: 100%;
-    height: 200px;
-  }
+.btn-buy {
+  flex: 1;
+  padding: 13px 0;
+  border: none;
+  border-radius: var(--radius-full);
+  background: linear-gradient(135deg, var(--color-berry), #D4534A);
+  color: #fff;
+  font-size: 15px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s var(--ease-smooth);
+  box-shadow: 0 4px 16px rgba(184, 69, 58, 0.3);
 }
-
-.eval-section {
-  max-width: 860px;
+.btn-buy:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 6px 24px rgba(184, 69, 58, 0.4);
 }
-.eval-header {
-  display: flex;
-  align-items: center;
-  gap: 16px;
-  margin-bottom: 16px;
+.btn-buy:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
 }
-.eval-header h3 {
-  margin: 0;
-  font-size: 18px;
+.btn-cart {
+  flex: 1;
+  padding: 13px 0;
+  border: 2px solid var(--color-terracotta);
+  border-radius: var(--radius-full);
+  background: transparent;
+  color: var(--color-terracotta);
+  font-size: 15px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s var(--ease-smooth);
 }
+.btn-cart:hover {
+  background: var(--color-terracotta);
+  color: #fff;
+}
+.btn-cart:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+.btn-spinner {
+  display: inline-block;
+  width: 18px;
+  height: 18px;
+  border: 2px solid rgba(255,255,255,0.3);
+  border-top-color: #fff;
+  border-radius: 50%;
+  animation: spin 0.6s linear infinite;
+}
+@keyframes spin { to { transform: rotate(360deg); } }
 
 .product-tabs {
-  margin-top: 24px;
+  margin-top: 32px;
 }
 .tab-content {
   padding: 16px 0;
   line-height: 1.8;
 }
 .tab-summary {
-  color: #555;
+  color: var(--color-text-soft);
   font-size: 15px;
   margin-bottom: 16px;
 }
@@ -431,56 +354,25 @@ watch(() => route.params.id, () => { loadProduct(); loadEvaluations() })
   flex-wrap: wrap;
 }
 .tab-desc {
-  color: #333;
+  color: var(--color-text);
   font-size: 15px;
   white-space: pre-wrap;
 }
-.eval-summary {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-}
-.eval-count {
-  color: #999;
-  font-size: 13px;
-}
-.eval-form-card {
-  margin-bottom: 16px;
-}
-.eval-form-rate {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  margin-bottom: 8px;
-}
-.eval-list {
-  display: flex;
-  flex-direction: column;
-  gap: 12px;
-}
-.eval-item {
-  padding: 12px;
-  border: 1px solid #eee;
-  border-radius: 8px;
-}
-.eval-item-header {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-}
-.eval-user {
-  font-weight: 600;
-  font-size: 14px;
-}
-.eval-time {
-  color: #999;
-  font-size: 12px;
-  margin-left: auto;
-}
-.eval-content {
-  margin: 8px 0 4px;
-  color: #555;
-  font-size: 14px;
-  line-height: 1.6;
+
+@media (max-width: 760px) {
+  .detail-body {
+    flex-direction: column;
+    gap: 24px;
+  }
+  .product-img-box {
+    width: 100%;
+    height: 220px;
+  }
+  .detail-name {
+    font-size: 22px;
+  }
+  .price-num {
+    font-size: 32px;
+  }
 }
 </style>
