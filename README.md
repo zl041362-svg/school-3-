@@ -257,3 +257,188 @@ npm run lint
 # 代码格式化
 npm run format
 ```
+
+## 系统架构
+
+### 整体模块架构
+
+```mermaid
+graph TB
+    subgraph 前端["前端 (Vue 3 + Vite + Element Plus)"]
+        direction TB
+        LAYOUT["布局层<br/>ShopLayout / AdminLayout / AuthLayout"]
+        VIEW["视图层 (33个页面)"]
+        STORE["状态管理 (Pinia)<br/>auth / cart / orders / address / adminModeration"]
+        API["API 模块 (Axios)<br/>auth / products / news / cart / orders / address / merchant / admin"]
+        ROUTER["路由守卫<br/>认证 + 角色鉴权"]
+        COMP["通用组件<br/>PageContainer / EmptyState / ErrorAlert / LoadingState<br/>AddressManager / ProductEvaluations / UserInfoHeader 等"]
+    end
+
+    subgraph 后端["后端 (Spring Boot 3.3)"]
+        direction TB
+        CTRL["Controller 层<br/>Auth / Product / News / Cart / Order<br/>Address / Merchant / Admin"]
+        SVC["Service 层<br/>Auth / Product / News / Cart / Order<br/>Address / Merchant<br/>ProductManage / NewsManage / ReviewManage<br/>UserManage / FarmerManage / OperationLog"]
+        MAPPER["Mapper 层 (MyBatis-Plus)<br/>18 个 Mapper"]
+        MODEL["Model 层<br/>User / Product / News / Order / OrderItem<br/>CartItem / Address / Favorite<br/>FarmerVerification / ProductReview / NewsReview<br/>ProductEvaluation / Role / Permission / OperationLog"]
+        SECURITY["Security 层<br/>JwtService / JwtAuthFilter<br/>SecurityConfig / CORS"]
+        COMMON["Common 层<br/>ApiResponse / BizException<br/>GlobalExceptionHandler / PageUtils"]
+    end
+
+    subgraph 数据库["数据库 (MySQL 8)"]
+        DB["Flyway 迁移 V1-V14<br/>17 张业务表"]
+    end
+
+    VIEW --> STORE
+    STORE --> API
+    API -->|"/api/*"| CTRL
+    ROUTER --> VIEW
+    LAYOUT --> VIEW
+
+    CTRL --> SVC
+    SVC --> MAPPER
+    MAPPER --> MODEL
+    MODEL --> DB
+    SECURITY --> CTRL
+    COMMON --> SVC
+```
+
+### 功能模块与角色权限
+
+```mermaid
+graph LR
+    subgraph 游客["👤 游客"]
+        V1["浏览商品/资讯"]
+        V2["商品搜索筛选"]
+        V3["注册/登录"]
+    end
+
+    subgraph 消费者["🛒 消费者"]
+        C1["购物车管理"]
+        C2["下单结算"]
+        C3["订单管理/确认收货"]
+        C4["收货地址管理"]
+        C5["商品评价"]
+        C6["资讯收藏"]
+        C7["个人中心"]
+    end
+
+    subgraph 农户["🌾 农户"]
+        F1["商户仪表盘"]
+        F2["商品发布/管理"]
+        F3["资讯发布/管理"]
+        F4["订单管理/发货"]
+        F5["身份认证"]
+    end
+
+    subgraph 管理员["🔧 管理员"]
+        A1["控制台"]
+        A2["用户管理(启/禁用)"]
+        A3["农户认证审核"]
+        A4["商品审核/管理"]
+        A5["资讯审核/管理"]
+        A6["角色/权限管理"]
+        A7["操作日志"]
+    end
+
+    V1 -->|"注册"| 消费者
+    V1 -->|"注册+认证"| 农户
+    A3 -->|"审核通过"| 农户
+    C2 -->|"下单"| F4
+    F2 -->|"提交审核"| A4
+    F3 -->|"提交审核"| A5
+```
+
+### 数据库表关系
+
+```mermaid
+erDiagram
+    users ||--o{ addresses : "user_id"
+    users ||--o{ cart_items : "user_id"
+    users ||--o{ orders : "user_id"
+    users ||--o{ farmer_verifications : "user_id"
+    users ||--o{ favorites : "user_id"
+    users ||--o{ product_evaluations : "user_id"
+    users ||--|| roles : "role"
+    users ||--|| permissions : "role"
+
+    products ||--o{ cart_items : "product_id"
+    products ||--o{ order_items : "product_id"
+    products ||--o{ product_reviews : "product_id"
+    products ||--o{ product_evaluations : "product_id"
+    products ||--|| farmer_verifications : "user_id"
+
+    orders ||--o{ order_items : "order_id"
+    news ||--o{ news_reviews : "news_id"
+    news ||--o{ favorites : "news_id"
+```
+
+### 核心业务流程
+
+```mermaid
+sequenceDiagram
+    actor C as 🛒 消费者
+    actor F as 🌾 农户
+    actor A as 🔧 管理员
+
+    Note over C,F: === 商品上架流程 ===
+    F->>F: 注册(角色=customer)
+    F->>F: 提交农户认证
+    A->>A: 审核认证申请
+    A-->>F: 审核通过(角色=farmer)
+    F->>F: 发布商品(status=pending)
+    A->>A: 审核商品
+    A-->>F: 审核通过(status=published)
+
+    Note over C,F: === 购买发货流程 ===
+    C->>C: 浏览商品 → 加入购物车
+    C->>C: 填写地址 → 提交订单
+    C-->>F: 订单(status=pending_shipment)
+    F->>F: 填写物流 → 发货
+    F-->>C: 订单(status=shipped)
+    C->>C: 确认收货(status=completed)
+
+    Note over C: === 评价流程 ===
+    C->>C: 购买后可评价(1-5星)
+    C->>C: 评价公开显示在商品详情
+```
+
+### 前后端路由映射
+
+```mermaid
+graph TB
+    subgraph 前端路由["前端路由"]
+        R1["/ (首页)"]
+        R2["/products /products/:id"]
+        R3["/news /news/:id"]
+        R4["/cart /checkout"]
+        R5["/orders /orders/:id"]
+        R6["/profile /profile/reviews /profile/favorites"]
+        R7["/merchant /merchant/products /merchant/news /merchant/orders /merchant/verify"]
+        R8["/admin ... (10个子页面)"]
+        R9["/auth/login /auth/register"]
+        R10["/403 /404"]
+    end
+
+    subgraph 后端API["后端 API (/api)"]
+        B1["GET /products (公开)"]
+        B2["GET /news (公开)"]
+        B3["/cart /orders /addresses (需登录)"]
+        B4["/merchant/** (需FARMER角色)"]
+        B5["/admin/** (需ADMIN角色)"]
+        B6["/auth/login /auth/register (公开)"]
+        B7["/products/{id}/evaluations (公开GET, 需登录POST)"]
+        B8["/news/{id}/favorite /news/favorites (需登录)"]
+    end
+
+    R1 --> B1
+    R2 --> B1
+    R2 --> B7
+    R3 --> B2
+    R3 --> B8
+    R4 --> B3
+    R5 --> B3
+    R6 --> B3
+    R7 --> B4
+    R8 --> B5
+    R9 --> B6
+```
