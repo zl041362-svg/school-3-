@@ -216,23 +216,16 @@ onMounted(() => {
 .submit-btn {
   padding: 14px 40px;
   border: none;
-  border-radius: var(--radius-full);
-  background: linear-gradient(135deg, var(--color-berry), #D4534A);
+  border-radius: var(--radius-sm);
+  background: #E4393C;
   color: #fff;
   font-size: 16px;
-  font-weight: 600;
+  font-weight: 500;
   cursor: pointer;
-  transition: all 0.3s var(--ease-smooth);
-  box-shadow: 0 4px 20px rgba(184, 69, 58, 0.3);
+  transition: background 0.15s;
 }
-.submit-btn:hover {
-  transform: translateY(-1px);
-  box-shadow: 0 6px 28px rgba(184, 69, 58, 0.4);
-}
-.submit-btn:disabled {
-  opacity: 0.6;
-  cursor: not-allowed;
-}
+.submit-btn:hover { background: #C93538; }
+.submit-btn:disabled { opacity: 0.5; cursor: not-allowed; }
 .btn-spinner {
   display: inline-block;
   width: 18px;

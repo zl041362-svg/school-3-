@@ -146,13 +146,12 @@ async function handleSubmit() {
 .back-btn {
   padding: 10px 28px;
   border: none;
-  border-radius: var(--radius-full);
-  background: linear-gradient(135deg, var(--color-terracotta), var(--color-amber));
+  border-radius: var(--radius-sm);
+  background: var(--color-primary);
   color: #fff;
   font-size: 14px;
-  font-weight: 600;
   cursor: pointer;
-  transition: all 0.3s var(--ease-smooth);
+  transition: background 0.15s;
 }
 
 .info-banner {

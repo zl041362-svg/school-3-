@@ -32,38 +32,33 @@ const menuItems = computed(() => {
 .menu-grid {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
-  gap: 14px;
+  gap: 12px;
   margin-bottom: 24px;
 }
 .menu-card {
-  background: var(--color-paper-white);
+  background: var(--color-surface);
   border: 1px solid var(--color-border-light);
-  border-radius: var(--radius-lg);
-  padding: 22px 16px;
+  padding: 20px 16px;
   text-align: center;
   cursor: pointer;
-  transition: all 0.35s var(--ease-smooth);
+  transition: border-color 0.15s;
 }
 .menu-card:hover {
-  transform: translateY(-3px);
-  box-shadow: var(--shadow-md);
-  border-color: var(--color-terracotta-soft);
+  border-color: var(--color-primary);
 }
 .menu-icon {
-  width: 48px;
-  height: 48px;
-  border-radius: var(--radius-sm);
+  width: 44px;
+  height: 44px;
   display: flex;
   align-items: center;
   justify-content: center;
   font-size: 24px;
   margin: 0 auto 8px;
-  background: var(--color-cream-dark);
+  background: #F5F5F5;
 }
 .menu-label {
-  font-size: 14px;
-  font-weight: 500;
-  color: var(--color-text-soft);
+  font-size: 13px;
+  color: var(--color-text-secondary);
 }
 
 @media (max-width: 600px) {

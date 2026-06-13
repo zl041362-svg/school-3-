@@ -15,6 +15,7 @@ const newsLoading = ref(false)
 const error = ref('')
 const featuredProducts = ref([])
 const latestNews = ref([])
+const searchKeyword = ref('')
 
 const categories = [
   { emoji: '🌾', label: '粮油', value: '粮油' },
@@ -25,15 +26,22 @@ const categories = [
   { emoji: '🐟', label: '水产', value: '水产' },
 ]
 
-const productCards = computed(() => featuredProducts.value.slice(0, 6))
+const productCards = computed(() => featuredProducts.value.slice(0, 8))
 const newsCards = computed(() => latestNews.value.slice(0, 4))
+
+function handleSearch() {
+  const kw = searchKeyword.value.trim()
+  if (kw) {
+    router.push(`/products?keyword=${encodeURIComponent(kw)}`)
+  }
+}
 
 async function loadHomeData() {
   loading.value = true
   newsLoading.value = true
   try {
     const [productResult, newsResult] = await Promise.all([
-      getProductsApi({ page: 1, pageSize: 6 }),
+      getProductsApi({ page: 1, pageSize: 8 }),
       getNewsListApi({ page: 1, pageSize: 4 }),
     ])
     featuredProducts.value = productResult.items || productResult.list || productResult.data || []
@@ -57,13 +65,25 @@ onMounted(loadHomeData)
 
     <HomeBanner />
 
+    <!-- 搜索区 -->
+    <div class="search-section">
+      <div class="search-input-wrap">
+        <svg class="search-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+        <input
+          v-model="searchKeyword"
+          type="text"
+          class="search-input"
+          placeholder="搜索农产品、产地、农户..."
+          @keyup.enter="handleSearch"
+        />
+        <button class="search-btn" @click="handleSearch">搜索</button>
+      </div>
+    </div>
+
     <!-- 商品分类 -->
     <section class="section">
       <div class="section-head">
-        <div>
-          <h2 class="section-title">商品分类</h2>
-          <p class="section-desc">六大地标品类，应季而食</p>
-        </div>
+        <h2 class="section-title">商品分类</h2>
       </div>
       <div class="category-grid">
         <div
@@ -85,64 +105,95 @@ onMounted(loadHomeData)
 
 <style scoped>
 .home-page {
-  padding-bottom: 32px;
+  padding-bottom: 24px;
 }
 
+/* ── 搜索 ── */
+.search-section {
+  margin-bottom: 20px;
+  display: flex;
+  justify-content: center;
+}
+.search-input-wrap {
+  display: flex;
+  align-items: center;
+  width: 100%;
+  max-width: 640px;
+  height: 42px;
+  border: 2px solid var(--color-primary);
+  background: var(--color-surface);
+}
+.search-icon {
+  margin: 0 10px;
+  flex-shrink: 0;
+  color: var(--color-text-hint);
+}
+.search-input {
+  flex: 1;
+  height: 100%;
+  border: none;
+  outline: none;
+  font-size: 13px;
+  color: var(--color-text);
+  background: transparent;
+}
+.search-input::placeholder {
+  color: var(--color-text-disabled);
+}
+.search-btn {
+  height: 100%;
+  padding: 0 20px;
+  border: none;
+  background: var(--color-primary);
+  color: #fff;
+  font-size: 13px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background 0.15s;
+}
+.search-btn:hover {
+  background: var(--color-primary-hover);
+}
+
+/* ── 分类 ── */
 .section {
-  margin-bottom: 48px;
+  margin-bottom: 24px;
 }
 .section-head {
-  display: flex;
-  align-items: flex-end;
-  justify-content: space-between;
-  margin-bottom: 24px;
+  margin-bottom: 10px;
 }
 .section-title {
   margin: 0;
-  font-family: var(--font-display);
-  font-size: 28px;
-  font-weight: 800;
-  color: var(--color-soil);
-}
-.section-desc {
-  margin: 4px 0 0;
-  font-size: 14px;
-  color: var(--color-text-muted);
+  font-size: 18px;
+  font-weight: 600;
+  color: var(--color-text);
 }
 
 .category-grid {
   display: grid;
   grid-template-columns: repeat(6, 1fr);
-  gap: 16px;
+  gap: 8px;
 }
 .category-card {
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 10px;
-  padding: 24px 12px;
-  background: var(--color-paper-white);
+  gap: 4px;
+  padding: 10px 8px;
+  background: var(--color-surface);
   border: 1px solid var(--color-border-light);
-  border-radius: var(--radius-lg);
   cursor: pointer;
-  transition: all 0.35s var(--ease-smooth);
+  transition: border-color 0.15s;
 }
 .category-card:hover {
-  transform: translateY(-4px);
-  box-shadow: var(--shadow-md);
-  border-color: var(--color-terracotta-soft);
+  border-color: var(--color-primary);
 }
 .category-emoji {
-  font-size: 36px;
-  transition: transform 0.35s var(--ease-spring);
-}
-.category-card:hover .category-emoji {
-  transform: scale(1.15);
+  font-size: 22px;
 }
 .category-label {
-  font-size: 14px;
-  font-weight: 600;
-  color: var(--color-soil);
+  font-size: 12px;
+  color: var(--color-text-secondary);
 }
 
 @media (max-width: 960px) {

@@ -51,25 +51,20 @@ onMounted(() => {
 }
 .page-title {
   margin: 0;
-  font-family: var(--font-display);
-  font-size: 28px;
-  font-weight: 800;
-  color: var(--color-soil);
+  font-size: 22px;
+  font-weight: 600;
+  color: var(--color-text);
 }
 .add-address-btn {
-  padding: 9px 22px;
+  padding: 8px 20px;
   border: none;
-  border-radius: var(--radius-full);
-  background: linear-gradient(135deg, var(--color-terracotta), var(--color-amber));
+  border-radius: var(--radius-sm);
+  background: var(--color-primary);
   color: #fff;
   font-size: 14px;
-  font-weight: 600;
+  font-weight: 500;
   cursor: pointer;
-  transition: all 0.3s var(--ease-smooth);
-  box-shadow: 0 2px 12px rgba(193, 114, 69, 0.3);
+  transition: background 0.15s;
 }
-.add-address-btn:hover {
-  transform: translateY(-1px);
-  box-shadow: 0 4px 18px rgba(193, 114, 69, 0.4);
-}
+.add-address-btn:hover { background: var(--color-primary-hover); }
 </style>

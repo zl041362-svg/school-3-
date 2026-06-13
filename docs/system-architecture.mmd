@@ -1,0 +1,43 @@
+graph TB
+    subgraph 前端展示层["前端展示层 (Vue 3 + Vite)"]
+        direction LR
+        L1["布局组件<br/>ShopLayout / AdminLayout<br/>AuthLayout"]
+        L2["页面视图<br/>33 个功能页面<br/>商城15 + 商户5 + 后台10 + 通用3"]
+        L3["状态管理<br/>Pinia Store<br/>auth / cart / orders / address"]
+        L4["路由模块<br/>Vue Router<br/>权限守卫 / 角色鉴权"]
+        L5["API 通信<br/>Axios 封装<br/>8 个 API 模块"]
+        L6["通用组件<br/>PageContainer<br/>EmptyState / LoadingState<br/>ProductEvaluations 等"]
+    end
+
+    subgraph 后端业务层["后端业务层 (Spring Boot 3.3)"]
+        direction TB
+        S1["控制器层 Controller<br/>Auth / Product / News / Cart<br/>Order / Address / Merchant<br/>Admin (8个Controller)"]
+        S2["业务逻辑层 Service<br/>Auth / Product / News / Cart<br/>Order / Address / Merchant<br/>ProductManage / ReviewManage<br/>UserManage / FarmerManage<br/>NewsManage / OperationLog"]
+        S3["数据访问层 Mapper<br/>MyBatis-Plus<br/>17个数据映射器"]
+        S4["安全层 Security<br/>JWT认证 + 过滤器<br/>Spring Security<br/>CORS 跨域配置"]
+        S5["公共组件 Common<br/>异常处理 / 分页工具<br/>API 响应格式"]
+    end
+
+    subgraph 数据持久层["数据持久层 (MySQL 8)"]
+        D1["用户模块<br/>users / addresses<br/>farmer_verifications"]
+        D2["商品模块<br/>products / product_reviews<br/>product_evaluations"]
+        D3["交易模块<br/>orders / order_items<br/>cart_items"]
+        D4["内容模块<br/>news / news_reviews<br/>favorites"]
+        D5["系统模块<br/>roles / permissions<br/>operation_logs"]
+    end
+
+    L2 --> L3 --> L5
+    L4 --> L2
+    L1 --> L2
+    L6 --> L2
+
+    L5 -->|"RESTful API"| S1
+    S4 --> S1
+    S1 --> S2
+    S2 --> S3
+    S3 --> D1
+    S3 --> D2
+    S3 --> D3
+    S3 --> D4
+    S3 --> D5
+    S5 --> S2

@@ -98,16 +98,13 @@ onMounted(refreshAll)
 .stat-card {
   text-align: center;
   padding: 28px 20px;
-  background: var(--color-paper-white);
+  background: var(--color-surface);
   border: 1px solid var(--color-border-light);
-  border-radius: var(--radius-lg);
   cursor: pointer;
-  transition: all 0.35s var(--ease-smooth);
+  transition: border-color 0.15s;
 }
 .stat-card:hover {
-  transform: translateY(-3px);
-  box-shadow: var(--shadow-md);
-  border-color: var(--color-terracotta-soft);
+  border-color: var(--color-primary);
 }
 .stat-value {
   font-family: var(--font-display);

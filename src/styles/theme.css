@@ -1,75 +1,79 @@
 /* ═══════════════════════════════════════════
-   智慧三农 — 「大地暖阳」设计系统
-   Warm Earth Design System
+   智慧三农 — 设计系统
    ═══════════════════════════════════════════ */
 
 :root {
-  /* ── 大地色系 · Earth Palette ── */
-  --color-soil: #4A3728;
-  --color-soil-light: #6B5544;
-  --color-terracotta: #C17245;
-  --color-terracotta-soft: #E8C8B0;
-  --color-amber: #D4973B;
-  --color-amber-glow: #F5D59E;
-  --color-wheat: #E8D5A3;
-  --color-sage: #8B9D6B;
-  --color-sage-soft: #D5DFC5;
-  --color-leaf: #5C7A3C;
-  --color-leaf-deep: #3D5426;
-  --color-berry: #B8453A;
-  --color-berry-soft: #F0C8C4;
+  /* ── 品牌色 · Brand ── */
+  --color-primary: #D4452A;
+  --color-primary-hover: #B83720;
+  --color-primary-light: #FFF1EE;
 
-  /* ── 暖白基色 · Warm Neutrals ── */
-  --color-cream: #FDF9F2;
-  --color-cream-dark: #F5EDE0;
-  --color-paper: #FBF6ED;
-  --color-paper-white: #FFFCF7;
-  --color-eggshell: #F9F4EA;
+  /* ── 大地色系（保留变量名，对齐新配色）── */
+  --color-soil: #222222;
+  --color-soil-light: #444444;
+  --color-terracotta: #D4452A;
+  --color-terracotta-soft: #FFF1EE;
+  --color-amber: #D4452A;
+  --color-amber-glow: #FFF1EE;
+  --color-wheat: #F0F0F0;
+  --color-sage: #8B9D6B;
+  --color-sage-soft: #EAF4E8;
+  --color-leaf: #3B9C3B;
+  --color-leaf-deep: #2D7A2D;
+  --color-berry: #D4452A;
+  --color-berry-soft: #FDECEC;
+
+  /* ── 暖白基色（保留变量名，对齐白色系）── */
+  --color-cream: #F5F5F5;
+  --color-cream-dark: #EBEBEB;
+  --color-paper: #FFFFFF;
+  --color-paper-white: #FFFFFF;
+  --color-eggshell: #F8F8F8;
 
   /* ── 功能色 · Functional ── */
-  --color-text: #3C2A1C;
-  --color-text-soft: #6B5A4E;
-  --color-text-muted: #9B8D80;
-  --color-border: #E5D9CB;
-  --color-border-light: #F0E8DA;
-  --color-success: #5C8F3C;
-  --color-danger: #C4543E;
-  --color-info: #6B8DAF;
+  --color-text: #222222;
+  --color-text-soft: #666666;
+  --color-text-muted: #999999;
+  --color-border: #E8E8E8;
+  --color-border-light: #F0F0F0;
+  --color-success: #3B9C3B;
+  --color-danger: #D9493E;
+  --color-info: #5B8DBA;
 
   /* ── 语义变量 · Semantic ── */
-  --zhhs-bg: var(--color-cream);
-  --zhhs-surface: var(--color-paper-white);
-  --zhhs-text: var(--color-text);
-  --zhhs-muted: var(--color-text-soft);
-  --zhhs-primary: var(--color-terracotta);
-  --zhhs-primary-soft: var(--color-terracotta-soft);
-  --zhhs-accent: var(--color-amber);
-  --zhhs-accent-soft: var(--color-amber-glow);
-  --zhhs-border: var(--color-border);
-  --zhhs-danger: var(--color-danger);
+  --zhhs-bg: #F5F5F5;
+  --zhhs-surface: #FFFFFF;
+  --zhhs-text: #222222;
+  --zhhs-muted: #666666;
+  --zhhs-primary: #D4452A;
+  --zhhs-primary-soft: #FFF1EE;
+  --zhhs-accent: #D4452A;
+  --zhhs-accent-soft: #FFF1EE;
+  --zhhs-border: #E8E8E8;
+  --zhhs-danger: #D9493E;
 
   /* ── 排版 · Typography ── */
-  --font-display: 'Noto Serif SC', serif;
-  --font-body: 'DM Sans', 'PingFang SC', 'Microsoft YaHei', sans-serif;
-  --font-mono: 'JetBrains Mono', 'Fira Code', monospace;
+  --font-display: -apple-system, BlinkMacSystemFont, 'PingFang SC', 'Microsoft YaHei', 'Helvetica Neue', sans-serif;
+  --font-body: -apple-system, BlinkMacSystemFont, 'PingFang SC', 'Microsoft YaHei', 'Helvetica Neue', sans-serif;
+  --font-mono: 'SF Mono', 'Consolas', 'Menlo', monospace;
 
   /* ── 圆角 · Radius ── */
-  --radius-sm: 8px;
-  --radius-md: 14px;
-  --radius-lg: 20px;
-  --radius-xl: 28px;
+  --radius-sm: 4px;
+  --radius-md: 8px;
+  --radius-lg: 12px;
+  --radius-xl: 20px;
   --radius-full: 9999px;
 
-  /* ── 阴影 · Shadows ── */
-  --shadow-sm: 0 1px 3px rgba(74, 55, 40, 0.06);
-  --shadow-md: 0 4px 20px rgba(74, 55, 40, 0.08);
-  --shadow-lg: 0 12px 40px rgba(74, 55, 40, 0.10);
-  --shadow-xl: 0 20px 60px rgba(74, 55, 40, 0.12);
-  --shadow-card: 0 2px 12px rgba(74, 55, 40, 0.06), 0 8px 32px rgba(74, 55, 40, 0.04);
-  --shadow-glow: 0 0 40px rgba(212, 151, 59, 0.15);
+  /* ── 阴影 · Shadows（极淡）── */
+  --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.04);
+  --shadow-md: 0 2px 8px rgba(0, 0, 0, 0.06);
+  --shadow-lg: 0 4px 16px rgba(0, 0, 0, 0.08);
+  --shadow-xl: 0 8px 24px rgba(0, 0, 0, 0.10);
+  --shadow-card: 0 1px 4px rgba(0, 0, 0, 0.04);
+  --shadow-glow: 0 0 20px rgba(212, 69, 42, 0.10);
 
   /* ── 过渡 · Transitions ── */
-  --ease-spring: cubic-bezier(0.34, 1.56, 0.64, 1);
+  --ease-spring: cubic-bezier(0.4, 0, 0.2, 1);
   --ease-smooth: cubic-bezier(0.4, 0, 0.2, 1);
   --ease-out: cubic-bezier(0, 0, 0.2, 1);
 }

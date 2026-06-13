@@ -43,17 +43,12 @@
 .back-btn {
   padding: 10px 28px;
   border: none;
-  border-radius: var(--radius-full);
-  background: linear-gradient(135deg, var(--color-terracotta), var(--color-amber));
+  background: var(--color-primary);
   color: #fff;
   font-size: 14px;
-  font-weight: 600;
+  font-weight: 500;
   cursor: pointer;
-  transition: all 0.3s var(--ease-smooth);
-  box-shadow: 0 4px 16px rgba(193, 114, 69, 0.3);
+  transition: background 0.15s;
 }
-.back-btn:hover {
-  transform: translateY(-1px);
-  box-shadow: 0 6px 24px rgba(193, 114, 69, 0.4);
-}
+.back-btn:hover { background: var(--color-primary-hover); }
 </style>

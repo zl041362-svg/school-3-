@@ -71,7 +71,7 @@ async function saveProfile() {
   align-items: center;
   gap: 20px;
   padding: 24px;
-  background: linear-gradient(135deg, var(--color-cream-dark), var(--color-paper-white));
+  background: var(--color-surface);
   border: 1px solid var(--color-border-light);
   border-radius: var(--radius-lg);
   margin-bottom: 20px;
@@ -80,7 +80,7 @@ async function saveProfile() {
   width: 56px;
   height: 56px;
   border-radius: 50%;
-  background: linear-gradient(135deg, var(--color-terracotta-soft), var(--color-amber-glow));
+  background: var(--color-primary-light);
   color: var(--color-terracotta);
   display: flex;
   align-items: center;

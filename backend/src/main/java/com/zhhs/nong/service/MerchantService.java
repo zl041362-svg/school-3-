@@ -175,6 +175,8 @@ public class MerchantService {
         product.setUpdatedAt(LocalDateTime.now());
         productMapper.updateById(product);
 
+        cancelOldProductReviews(productId);
+
         ProductReview review = new ProductReview();
         review.setProductId(product.getId());
         review.setProduct(product.getName());
@@ -246,6 +248,8 @@ public class MerchantService {
         news.setStatus("pending");
         news.setUpdatedAt(LocalDateTime.now());
         newsMapper.updateById(news);
+
+        cancelOldNewsReviews(newsId);
 
         NewsReview review = new NewsReview();
         review.setNewsId(news.getId());
@@ -330,6 +334,22 @@ public class MerchantService {
             throw new BizException(4042, "news not found");
         }
         return news;
+    }
+
+    private void cancelOldProductReviews(Long productId) {
+        ProductReview cancel = new ProductReview();
+        cancel.setStatus("cancelled");
+        productReviewMapper.update(cancel, new LambdaQueryWrapper<ProductReview>()
+                .eq(ProductReview::getProductId, productId)
+                .eq(ProductReview::getStatus, "pending"));
+    }
+
+    private void cancelOldNewsReviews(Long newsId) {
+        NewsReview cancel = new NewsReview();
+        cancel.setStatus("cancelled");
+        newsReviewMapper.update(cancel, new LambdaQueryWrapper<NewsReview>()
+                .eq(NewsReview::getNewsId, newsId)
+                .eq(NewsReview::getStatus, "pending"));
     }
 }
 

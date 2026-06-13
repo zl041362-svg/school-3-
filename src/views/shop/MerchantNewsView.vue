@@ -224,21 +224,16 @@ onMounted(loadNews)
   color: var(--color-text-muted);
 }
 .add-btn {
-  padding: 9px 22px;
+  padding: 8px 20px;
   border: none;
-  border-radius: var(--radius-full);
-  background: linear-gradient(135deg, var(--color-terracotta), var(--color-amber));
+  border-radius: var(--radius-sm);
+  background: var(--color-primary);
   color: #fff;
-  font-size: 14px;
-  font-weight: 600;
+  font-size: 13px;
   cursor: pointer;
-  transition: all 0.3s var(--ease-smooth);
-  box-shadow: 0 2px 12px rgba(193, 114, 69, 0.3);
+  transition: background 0.15s;
 }
-.add-btn:hover {
-  transform: translateY(-1px);
-  box-shadow: 0 4px 18px rgba(193, 114, 69, 0.4);
-}
+.add-btn:hover { background: var(--color-primary-hover); }
 
 .filter-bar {
   display: flex;

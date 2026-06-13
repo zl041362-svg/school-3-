@@ -44,6 +44,7 @@ public class ReviewManageService {
     @Transactional(readOnly = true)
     public Map<String, Object> getProductReviews(Integer page, Integer pageSize) {
         List<ProductReview> all = productReviewMapper.selectList(new LambdaQueryWrapper<ProductReview>()
+                .ne(ProductReview::getStatus, "cancelled")
                 .orderByDesc(ProductReview::getId));
         return PageUtils.pageResponse(PageUtils.slice(all, page, pageSize, 20), all.size(), page, pageSize, 20);
     }
@@ -51,6 +52,7 @@ public class ReviewManageService {
     @Transactional(readOnly = true)
     public Map<String, Object> getNewsReviews(Integer page, Integer pageSize) {
         List<NewsReview> all = newsReviewMapper.selectList(new LambdaQueryWrapper<NewsReview>()
+                .ne(NewsReview::getStatus, "cancelled")
                 .orderByDesc(NewsReview::getId));
         return PageUtils.pageResponse(PageUtils.slice(all, page, pageSize, 20), all.size(), page, pageSize, 20);
     }

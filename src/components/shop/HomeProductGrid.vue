@@ -88,124 +88,100 @@ async function handleAddToCart(item) {
 
 <style scoped>
 .section {
-  margin-bottom: 48px;
+  margin-bottom: 24px;
 }
 .section-head {
   display: flex;
   align-items: flex-end;
   justify-content: space-between;
-  margin-bottom: 24px;
+  margin-bottom: 12px;
 }
 .section-title {
   margin: 0;
-  font-family: var(--font-display);
-  font-size: 28px;
-  font-weight: 800;
-  color: var(--color-soil);
+  font-size: 18px;
+  font-weight: 600;
+  color: var(--color-text);
 }
 .section-desc {
-  margin: 4px 0 0;
-  font-size: 14px;
-  color: var(--color-text-muted);
+  margin: 1px 0 0;
+  font-size: 12px;
+  color: var(--color-text-hint);
 }
 .section-more {
-  display: flex;
+  display: inline-flex;
   align-items: center;
-  gap: 6px;
-  padding: 8px 20px;
-  border: 1.5px solid var(--color-border);
-  border-radius: var(--radius-full);
-  background: transparent;
-  color: var(--color-text-soft);
-  font-size: 14px;
-  font-weight: 500;
+  gap: 4px;
+  font-size: 13px;
+  color: var(--color-text-hint);
   cursor: pointer;
-  transition: all 0.25s var(--ease-smooth);
+  border: none;
+  background: none;
 }
-.section-more:hover {
-  border-color: var(--color-terracotta);
-  color: var(--color-terracotta);
-}
-.arrow {
-  transition: transform 0.25s var(--ease-smooth);
-}
-.section-more:hover .arrow { transform: translateX(3px); }
+.section-more:hover { color: var(--color-primary); }
 
 /* Grid */
 .product-grid {
   display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: 20px;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 10px;
 }
 
 /* Card */
 .product-card {
-  background: var(--color-paper-white);
+  background: var(--color-surface);
   border: 1px solid var(--color-border-light);
-  border-radius: var(--radius-lg);
-  overflow: hidden;
   cursor: pointer;
-  transition: all 0.35s var(--ease-smooth);
-  animation: fadeUp 0.5s var(--ease-out) both;
+  transition: border-color 0.15s;
 }
 .product-card:hover {
-  transform: translateY(-4px);
-  box-shadow: var(--shadow-lg);
-  border-color: var(--color-terracotta-soft);
+  border-color: var(--color-primary);
 }
 .card-visual {
   position: relative;
-  height: 200px;
-  background: linear-gradient(160deg, var(--color-cream-dark), var(--color-paper));
+  height: 140px;
+  background: #F7F7F7;
   display: flex;
   align-items: center;
   justify-content: center;
 }
 .card-img {
-  font-size: 72px;
-  transition: transform 0.35s var(--ease-spring);
-}
-.product-card:hover .card-img {
-  transform: scale(1.12);
+  font-size: 52px;
 }
 .sold-out-badge {
   position: absolute;
-  top: 14px;
-  right: 14px;
-  padding: 4px 12px;
-  border-radius: var(--radius-full);
-  background: rgba(0,0,0,0.55);
+  top: 12px;
+  right: 12px;
+  padding: 2px 10px;
+  background: rgba(0,0,0,0.5);
   color: #fff;
   font-size: 12px;
-  font-weight: 600;
 }
 
-.card-body { padding: 18px 20px 20px; }
+.card-body { padding: 10px 12px 12px; }
 .card-head {
   display: flex;
   justify-content: space-between;
   align-items: baseline;
-  margin-bottom: 6px;
+  margin-bottom: 2px;
 }
 .card-name {
   margin: 0;
-  font-family: var(--font-display);
-  font-size: 17px;
-  font-weight: 700;
-  color: var(--color-soil);
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--color-text);
 }
 .card-origin {
-  font-size: 12px;
-  color: var(--color-text-muted);
+  font-size: 11px;
+  color: var(--color-text-hint);
   flex-shrink: 0;
 }
 .card-desc {
-  margin: 0 0 16px;
-  font-size: 13px;
-  color: var(--color-text-soft);
-  line-height: 1.5;
+  margin: 0 0 8px;
+  font-size: 12px;
+  color: var(--color-text-hint);
+  line-height: 1.4;
   display: -webkit-box;
-  -webkit-line-clamp: 2;
+  -webkit-line-clamp: 1;
   -webkit-box-orient: vertical;
   overflow: hidden;
 }
@@ -218,62 +194,58 @@ async function handleAddToCart(item) {
 .card-price {
   display: flex;
   align-items: baseline;
-  gap: 2px;
+  gap: 1px;
 }
 .price-symbol {
-  font-size: 14px;
+  font-size: 12px;
   font-weight: 600;
-  color: var(--color-berry);
+  color: #E4393C;
 }
 .price-value {
-  font-family: var(--font-display);
-  font-size: 24px;
-  font-weight: 800;
-  color: var(--color-berry);
+  font-size: 18px;
+  font-weight: 700;
+  color: #E4393C;
 }
 
 .add-btn {
-  width: 40px;
-  height: 40px;
+  width: 32px;
+  height: 32px;
   display: flex;
   align-items: center;
   justify-content: center;
-  border: none;
+  border: 1px solid var(--color-border);
   border-radius: var(--radius-full);
-  background: var(--color-terracotta);
-  color: #fff;
+  background: var(--color-surface);
+  color: var(--color-text-hint);
   cursor: pointer;
-  transition: all 0.3s var(--ease-smooth);
-  box-shadow: 0 2px 8px rgba(193, 114, 69, 0.3);
+  transition: border-color 0.15s, color 0.15s;
 }
 .add-btn:hover {
-  transform: scale(1.08);
-  box-shadow: 0 4px 16px rgba(193, 114, 69, 0.4);
+  border-color: var(--color-primary);
+  color: var(--color-primary);
 }
 .add-btn.loading {
   pointer-events: none;
-  opacity: 0.7;
+  opacity: 0.6;
 }
 
 .mini-spinner {
-  width: 16px;
-  height: 16px;
-  border: 2px solid rgba(255,255,255,0.3);
-  border-top-color: #fff;
+  width: 14px;
+  height: 14px;
+  border: 2px solid var(--color-border);
+  border-top-color: var(--color-primary);
   border-radius: 50%;
   animation: spin 0.6s linear infinite;
 }
 @keyframes spin { to { transform: rotate(360deg); } }
 
-@keyframes fadeUp {
-  from { opacity: 0; transform: translateY(20px); }
-  to { opacity: 1; transform: translateY(0); }
+@media (max-width: 1100px) {
+  .product-grid { grid-template-columns: repeat(3, 1fr); }
 }
-
-@media (max-width: 960px) {
+@media (max-width: 760px) {
   .product-grid { grid-template-columns: repeat(2, 1fr); }
 }
-@media (max-width: 560px) {
+@media (max-width: 480px) {
   .product-grid { grid-template-columns: 1fr; }
 }
 </style>

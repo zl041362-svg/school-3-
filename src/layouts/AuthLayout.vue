@@ -1,10 +1,5 @@
 <template>
   <div class="auth-layout">
-    <div class="auth-bg">
-      <div class="auth-orb orb-1"></div>
-      <div class="auth-orb orb-2"></div>
-      <div class="auth-orb orb-3"></div>
-    </div>
     <div class="auth-wrapper">
       <div class="auth-brand">
         <div class="brand-glyph">丰</div>
@@ -21,50 +16,13 @@
 <style scoped>
 .auth-layout {
   min-height: 100vh;
-  position: relative;
   display: grid;
   place-items: center;
   padding: 24px;
   background: var(--color-cream);
 }
 
-/* Ambient background */
-.auth-bg {
-  position: fixed;
-  inset: 0;
-  overflow: hidden;
-  pointer-events: none;
-}
-.auth-orb {
-  position: absolute;
-  border-radius: 50%;
-  filter: blur(100px);
-}
-.orb-1 {
-  width: 400px;
-  height: 400px;
-  background: rgba(212, 151, 59, 0.1);
-  top: -100px;
-  right: -80px;
-}
-.orb-2 {
-  width: 320px;
-  height: 320px;
-  background: rgba(193, 114, 69, 0.08);
-  bottom: -80px;
-  left: -60px;
-}
-.orb-3 {
-  width: 240px;
-  height: 240px;
-  background: rgba(139, 157, 107, 0.08);
-  top: 50%;
-  left: 40%;
-}
-
 .auth-wrapper {
-  position: relative;
-  z-index: 1;
   display: flex;
   gap: 56px;
   align-items: center;
@@ -81,39 +39,34 @@
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  width: 72px;
-  height: 72px;
-  margin-bottom: 16px;
-  background: linear-gradient(135deg, var(--color-terracotta), var(--color-amber));
+  width: 56px;
+  height: 56px;
+  margin-bottom: 12px;
+  background: var(--color-primary);
   color: #fff;
-  font-family: var(--font-display);
-  font-size: 36px;
-  font-weight: 900;
-  border-radius: 18px;
-  box-shadow: 0 8px 32px rgba(193, 114, 69, 0.3);
+  font-size: 28px;
+  font-weight: 700;
+  border-radius: 8px;
+  box-shadow: none;
 }
 .brand-name {
-  margin: 0 0 8px;
-  font-family: var(--font-display);
-  font-size: 36px;
-  font-weight: 900;
-  color: var(--color-soil);
-  letter-spacing: 0.04em;
+  margin: 0 0 6px;
+  font-size: 28px;
+  font-weight: 700;
+  color: var(--color-text);
 }
 .brand-tagline {
   margin: 0;
-  font-size: 15px;
-  color: var(--color-text-soft);
+  font-size: 14px;
+  color: var(--color-text-hint);
   line-height: 1.6;
 }
 
 /* Card panel */
 .auth-card {
   flex: 1;
-  background: var(--color-paper-white);
-  border: 1px solid var(--color-border-light);
-  border-radius: var(--radius-xl);
-  box-shadow: var(--shadow-lg);
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
   padding: 36px 32px;
   min-width: 400px;
 }

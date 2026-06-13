@@ -153,91 +153,116 @@ export const useAdminModerationStore = defineStore('adminModeration', {
     },
     async reviewFarmerVerification(id, approved, reason = '') {
       this.error = ''
+      let apiFailed = false
       try {
         await reviewFarmerVerificationApi(id, { approved, reason })
       } catch (error) {
-        this.error = error?.message || '审核认证操作失败，已使用本地数据进行更新'
+        apiFailed = true
+        this.error = error?.message || '审核认证操作失败'
+        if (!allowMockFallback()) throw error
       }
 
-      this.farmerVerifications = this.farmerVerifications.map((item) =>
-        item.id === id ? { ...item, status: approved ? 'approved' : 'rejected', reason } : item,
-      )
-      this.persist()
+      if (!apiFailed || allowMockFallback()) {
+        this.farmerVerifications = this.farmerVerifications.map((item) =>
+          item.id === id ? { ...item, status: approved ? 'approved' : 'rejected', reason } : item,
+        )
+        this.persist()
+      }
     },
     async reviewProduct(id, approved, reason = '') {
       this.error = ''
+      let apiFailed = false
       try {
         await reviewProductApi(id, { approved, reason })
       } catch (error) {
-        this.error = error?.message || '商品审核操作失败，已使用本地数据进行更新'
+        apiFailed = true
+        this.error = error?.message || '商品审核操作失败'
+        if (!allowMockFallback()) throw error
       }
 
-      const reviewed = this.productReviews.find((item) => item.id === id)
-      const linkedProductId =
-        reviewed?.productId ||
-        reviewed?.product_id ||
-        this.products.find((item) => item.name === reviewed?.product)?.id ||
-        id
+      if (!apiFailed || allowMockFallback()) {
+        const reviewed = this.productReviews.find((item) => item.id === id)
+        const linkedProductId =
+          reviewed?.productId ||
+          reviewed?.product_id ||
+          this.products.find((item) => item.name === reviewed?.product)?.id ||
+          id
 
-      this.productReviews = this.productReviews.map((item) =>
-        item.id === id ? { ...item, status: approved ? 'approved' : 'rejected', reason } : item,
-      )
-      this.products = this.products.map((item) =>
-        item.id === linkedProductId ? { ...item, status: approved ? 'published' : 'rejected' } : item,
-      )
-      this.persist()
+        this.productReviews = this.productReviews.map((item) =>
+          item.id === id ? { ...item, status: approved ? 'approved' : 'rejected', reason } : item,
+        )
+        this.products = this.products.map((item) =>
+          item.id === linkedProductId ? { ...item, status: approved ? 'published' : 'rejected' } : item,
+        )
+        this.persist()
+      }
     },
     async reviewNews(id, approved, reason = '') {
       this.error = ''
+      let apiFailed = false
       try {
         await reviewNewsApi(id, { approved, reason })
       } catch (error) {
-        this.error = error?.message || '资讯审核操作失败，已使用本地数据进行更新'
+        apiFailed = true
+        this.error = error?.message || '资讯审核操作失败'
+        if (!allowMockFallback()) throw error
       }
 
-      const reviewed = this.newsReviews.find((item) => item.id === id)
-      const linkedNewsId =
-        reviewed?.newsId ||
-        reviewed?.news_id ||
-        this.news.find((item) => item.title === reviewed?.title)?.id ||
-        id
+      if (!apiFailed || allowMockFallback()) {
+        const reviewed = this.newsReviews.find((item) => item.id === id)
+        const linkedNewsId =
+          reviewed?.newsId ||
+          reviewed?.news_id ||
+          this.news.find((item) => item.title === reviewed?.title)?.id ||
+          id
 
-      this.newsReviews = this.newsReviews.map((item) =>
-        item.id === id ? { ...item, status: approved ? 'approved' : 'rejected', reason } : item,
-      )
-      this.news = this.news.map((item) =>
-        item.id === linkedNewsId ? { ...item, status: approved ? 'published' : 'rejected' } : item,
-      )
-      this.persist()
+        this.newsReviews = this.newsReviews.map((item) =>
+          item.id === id ? { ...item, status: approved ? 'approved' : 'rejected', reason } : item,
+        )
+        this.news = this.news.map((item) =>
+          item.id === linkedNewsId ? { ...item, status: approved ? 'published' : 'rejected' } : item,
+        )
+        this.persist()
+      }
     },
     async updateUserStatus(id, status) {
       this.error = ''
+      let apiFailed = false
       try {
         await updateAdminUserApi(id, { status })
       } catch (error) {
-        this.error = error?.message || '更新用户状态失败，已使用本地数据进行更新'
+        apiFailed = true
+        this.error = error?.message || '更新用户状态失败'
+        if (!allowMockFallback()) throw error
       }
 
-      this.users = this.users.map((item) => (item.id === id ? { ...item, status } : item))
-      this.logs.unshift({
-        id: Date.now(),
-        operator: 'admin',
-        action: 'update_user_status',
-        createdAt: new Date().toLocaleString('zh-CN', { hour12: false }),
-        detail: `用户 ${id} 状态更新为 ${status}`,
-      })
-      this.persist()
+      if (!apiFailed || allowMockFallback()) {
+        this.users = this.users.map((item) => (item.id === id ? { ...item, status } : item))
+        this.logs.unshift({
+          id: Date.now(),
+          operator: 'admin',
+          action: 'update_user_status',
+          createdAt: new Date().toLocaleString('zh-CN', { hour12: false }),
+          detail: `用户 ${id} 状态更新为 ${status}`,
+        })
+        this.persist()
+      }
     },
     async updateRoleMembers(id, members) {
       this.error = ''
+      let apiFailed = false
       try {
         await updateAdminRoleApi(id, { members })
       } catch (error) {
-        this.error = error?.message || '更新角色成员数失败，已使用本地数据进行更新'
+        apiFailed = true
+        this.error = error?.message || '更新角色成员数失败'
+        if (!allowMockFallback()) throw error
       }
 
-      this.roles = this.roles.map((item) => (item.id === id ? { ...item, members } : item))
-      this.persist()
+      if (!apiFailed || allowMockFallback()) {
+        this.roles = this.roles.map((item) => (item.id === id ? { ...item, members } : item))
+        this.persist()
+      }
     },
   },
 })

@@ -86,7 +86,7 @@ function handleLogout() {
 
 /* ═══ Aside ═══ */
 .admin-aside {
-  background: linear-gradient(180deg, #2E2218 0%, #3C2A1C 40%, #2E2218 100%);
+  background: #1E1E1E;
   display: flex;
   flex-direction: column;
   overflow: hidden;
@@ -95,35 +95,32 @@ function handleLogout() {
   display: flex;
   align-items: center;
   gap: 12px;
-  padding: 22px 20px;
+  padding: 20px;
   border-bottom: 1px solid rgba(255, 255, 255, 0.08);
 }
 .brand-glyph {
-  width: 36px;
-  height: 36px;
+  width: 32px;
+  height: 32px;
   display: flex;
   align-items: center;
   justify-content: center;
-  background: linear-gradient(135deg, var(--color-terracotta), var(--color-amber));
+  background: var(--color-primary);
   color: #fff;
-  font-family: var(--font-display);
-  font-size: 18px;
-  font-weight: 900;
-  border-radius: 8px;
+  font-size: 16px;
+  font-weight: 700;
+  border-radius: 4px;
   flex-shrink: 0;
 }
 .brand-text {
-  font-family: var(--font-display);
-  font-size: 16px;
-  font-weight: 700;
+  font-size: 15px;
+  font-weight: 600;
   color: rgba(255, 255, 255, 0.85);
-  letter-spacing: 0.03em;
 }
 
 /* Navigation */
 .aside-nav {
   flex: 1;
-  padding: 12px 12px;
+  padding: 12px;
   overflow-y: auto;
   display: flex;
   flex-direction: column;
@@ -133,26 +130,24 @@ function handleLogout() {
   display: flex;
   align-items: center;
   gap: 10px;
-  padding: 11px 16px;
+  padding: 10px 16px;
   border: none;
   border-radius: var(--radius-sm);
   background: transparent;
-  color: rgba(255, 255, 255, 0.55);
-  font-size: 14px;
-  font-weight: 500;
+  color: rgba(255, 255, 255, 0.5);
+  font-size: 13px;
   cursor: pointer;
-  transition: all 0.25s var(--ease-smooth);
+  transition: color 0.15s, background 0.15s;
   text-align: left;
   width: 100%;
 }
 .nav-item:hover {
-  color: rgba(255, 255, 255, 0.85);
-  background: rgba(255, 255, 255, 0.06);
+  color: rgba(255, 255, 255, 0.8);
+  background: rgba(255, 255, 255, 0.04);
 }
 .nav-item.active {
   color: #fff;
-  background: rgba(193, 114, 69, 0.3);
-  font-weight: 600;
+  background: rgba(212, 69, 42, 0.3);
 }
 .nav-icon {
   width: 20px;
@@ -168,18 +163,17 @@ function handleLogout() {
   display: inline-flex;
   align-items: center;
   gap: 8px;
-  padding: 7px 16px;
-  border: 1px solid rgba(255, 255, 255, 0.15);
-  border-radius: var(--radius-full);
+  padding: 6px 14px;
+  border: 1px solid rgba(255, 255, 255, 0.12);
   background: transparent;
-  color: rgba(255, 255, 255, 0.55);
+  color: rgba(255, 255, 255, 0.45);
   font-size: 12px;
   cursor: pointer;
-  transition: all 0.25s var(--ease-smooth);
+  transition: color 0.15s, border-color 0.15s;
 }
 .shop-link:hover {
-  border-color: rgba(255, 255, 255, 0.3);
-  color: rgba(255, 255, 255, 0.85);
+  border-color: rgba(255, 255, 255, 0.25);
+  color: rgba(255, 255, 255, 0.75);
 }
 
 /* ═══ Header ═══ */
@@ -187,11 +181,10 @@ function handleLogout() {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 0 28px;
-  background: rgba(253, 249, 242, 0.92);
-  backdrop-filter: blur(12px);
-  border-bottom: 1px solid var(--color-border-light);
-  height: 56px;
+  padding: 0 24px;
+  background: var(--color-surface);
+  border-bottom: 1px solid var(--color-border);
+  height: 52px;
 }
 .header-actions {
   display: flex;
@@ -199,24 +192,23 @@ function handleLogout() {
   gap: 10px;
 }
 .action-btn {
-  padding: 6px 16px;
-  border: 1.5px solid var(--color-border);
-  border-radius: var(--radius-full);
-  background: transparent;
-  color: var(--color-text-muted);
-  font-size: 13px;
+  padding: 5px 14px;
+  border: 1px solid var(--color-border);
+  background: var(--color-surface);
+  color: var(--color-text-hint);
+  font-size: 12px;
   cursor: pointer;
-  transition: all 0.25s var(--ease-smooth);
+  transition: color 0.15s, border-color 0.15s;
 }
 .action-btn:hover {
-  border-color: var(--color-berry);
-  color: var(--color-berry);
+  border-color: var(--color-primary);
+  color: var(--color-primary);
 }
 
 /* ═══ Main ═══ */
 .admin-main {
   background: var(--color-cream);
-  padding: 28px;
+  padding: 24px;
   overflow-y: auto;
 }
 

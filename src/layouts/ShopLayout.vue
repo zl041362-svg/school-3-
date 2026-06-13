@@ -92,7 +92,6 @@ function handleLogout() {
 </template>
 
 <style scoped>
-/* ═══ Shell ═══ */
 .shop-shell {
   min-height: 100vh;
   display: flex;
@@ -105,19 +104,17 @@ function handleLogout() {
   position: sticky;
   top: 0;
   z-index: 100;
-  background: rgba(253, 249, 242, 0.88);
-  backdrop-filter: blur(18px) saturate(180%);
-  -webkit-backdrop-filter: blur(18px) saturate(180%);
-  border-bottom: 1px solid var(--color-border-light);
+  background: #FFFFFF;
+  border-bottom: 1px solid var(--color-border);
 }
 
 .topbar-inner {
   max-width: 1240px;
   margin: 0 auto;
-  height: 64px;
+  height: 56px;
   display: flex;
   align-items: center;
-  gap: 36px;
+  gap: 32px;
   padding: 0 28px;
 }
 
@@ -125,176 +122,146 @@ function handleLogout() {
 .brand-mark {
   display: flex;
   align-items: center;
-  gap: 10px;
+  gap: 8px;
   flex-shrink: 0;
   text-decoration: none;
 }
 .brand-glyph {
-  width: 38px;
-  height: 38px;
+  width: 32px;
+  height: 32px;
   display: flex;
   align-items: center;
   justify-content: center;
-  background: linear-gradient(135deg, var(--color-terracotta), var(--color-amber));
+  background: var(--color-primary);
   color: #fff;
-  font-family: var(--font-display);
-  font-size: 20px;
-  font-weight: 900;
-  border-radius: 10px;
+  font-size: 16px;
+  font-weight: 700;
+  border-radius: 4px;
 }
 .brand-word {
-  font-family: var(--font-display);
-  font-size: 20px;
-  font-weight: 700;
-  color: var(--color-soil);
-  letter-spacing: 0.04em;
+  font-size: 18px;
+  font-weight: 600;
+  color: var(--color-text);
 }
 
 /* Nav */
 .nav-links {
   display: flex;
-  gap: 8px;
+  gap: 4px;
   flex: 1;
 }
 .nav-item {
-  padding: 8px 18px;
+  padding: 6px 16px;
   border-radius: var(--radius-full);
   font-size: 14px;
-  font-weight: 500;
-  color: var(--color-text-soft);
+  color: var(--color-text-secondary);
   text-decoration: none;
-  transition: all 0.25s var(--ease-smooth);
+  transition: color 0.15s;
 }
-.nav-item:hover {
-  color: var(--color-terracotta);
-  background: var(--color-terracotta-soft);
-}
+.nav-item:hover { color: var(--color-primary); }
 .nav-item.router-link-active {
-  color: var(--color-terracotta);
-  background: var(--color-terracotta-soft);
+  color: var(--color-primary);
   font-weight: 600;
+  background: var(--color-primary-light);
 }
 
 /* Actions */
 .nav-actions {
   display: flex;
   align-items: center;
-  gap: 10px;
+  gap: 8px;
   flex-shrink: 0;
 }
 
 .cart-btn {
   position: relative;
-  width: 40px;
-  height: 40px;
+  width: 36px;
+  height: 36px;
   display: flex;
   align-items: center;
   justify-content: center;
   border-radius: var(--radius-full);
-  color: var(--color-text-soft);
-  transition: all 0.25s var(--ease-smooth);
+  color: var(--color-text-secondary);
+  transition: color 0.15s;
 }
 .cart-btn:hover,
 .cart-btn.has-items {
-  color: var(--color-terracotta);
-  background: var(--color-terracotta-soft);
+  color: var(--color-primary);
 }
 .cart-dot {
   position: absolute;
-  top: 2px;
-  right: 2px;
+  top: 0;
+  right: 0;
   min-width: 18px;
   height: 18px;
   padding: 0 5px;
   border-radius: var(--radius-full);
-  background: var(--color-berry);
+  background: var(--color-primary);
   color: #fff;
   font-size: 11px;
-  font-weight: 700;
+  font-weight: 600;
   display: flex;
   align-items: center;
   justify-content: center;
 }
 
 .nav-icon-btn {
-  width: 40px;
-  height: 40px;
+  width: 36px;
+  height: 36px;
   display: flex;
   align-items: center;
   justify-content: center;
   border-radius: var(--radius-full);
-  color: var(--color-text-soft);
-  transition: all 0.25s var(--ease-smooth);
+  color: var(--color-text-secondary);
+  transition: color 0.15s;
 }
-.nav-icon-btn:hover {
-  color: var(--color-terracotta);
-  background: var(--color-terracotta-soft);
-}
+.nav-icon-btn:hover { color: var(--color-primary); }
 
 .role-badge {
-  padding: 5px 14px;
-  border-radius: var(--radius-full);
+  padding: 4px 12px;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-sm);
   font-size: 12px;
-  font-weight: 600;
-  border: none;
+  font-weight: 500;
+  background: #FFFFFF;
+  color: var(--color-text-secondary);
   cursor: pointer;
-  transition: all 0.25s var(--ease-smooth);
+  transition: color 0.15s, border-color 0.15s;
 }
-.role-badge.farmer {
-  background: var(--color-sage-soft);
-  color: var(--color-leaf-deep);
-}
-.role-badge.farmer:hover { filter: brightness(0.95); }
-.role-badge.admin {
-  background: var(--color-amber-glow);
-  color: var(--color-soil);
-}
-.role-badge.admin:hover { filter: brightness(0.95); }
+.role-badge:hover { color: var(--color-primary); border-color: var(--color-primary); }
 
 .logout-btn {
-  padding: 5px 14px;
-  border-radius: var(--radius-full);
+  padding: 4px 12px;
   font-size: 12px;
-  font-weight: 500;
-  border: 1.5px solid var(--color-border);
+  border: none;
   background: transparent;
-  color: var(--color-text-muted);
+  color: var(--color-text-hint);
   cursor: pointer;
-  transition: all 0.25s var(--ease-smooth);
 }
-.logout-btn:hover {
-  border-color: var(--color-berry);
-  color: var(--color-berry);
-}
+.logout-btn:hover { color: var(--color-text-secondary); }
 
 .btn-text {
-  padding: 6px 16px;
+  padding: 6px 14px;
   border: none;
   background: transparent;
   font-size: 14px;
-  font-weight: 500;
-  color: var(--color-text-soft);
+  color: var(--color-text-secondary);
   cursor: pointer;
-  transition: color 0.2s;
 }
-.btn-text:hover { color: var(--color-terracotta); }
+.btn-text:hover { color: var(--color-primary); }
 
 .btn-primary-sm {
-  padding: 8px 20px;
+  padding: 6px 18px;
   border: none;
-  border-radius: var(--radius-full);
-  background: linear-gradient(135deg, var(--color-terracotta), var(--color-amber));
+  border-radius: var(--radius-sm);
+  background: var(--color-primary);
   color: #fff;
-  font-size: 14px;
-  font-weight: 600;
+  font-size: 13px;
+  font-weight: 500;
   cursor: pointer;
-  transition: all 0.3s var(--ease-smooth);
-  box-shadow: 0 2px 8px rgba(193, 114, 69, 0.25);
+  transition: background 0.15s;
 }
-.btn-primary-sm:hover {
-  transform: translateY(-1px);
-  box-shadow: 0 4px 16px rgba(193, 114, 69, 0.35);
-}
+.btn-primary-sm:hover { background: var(--color-primary-hover); }
 
 /* ═══ Body ═══ */
 .shop-body {
@@ -302,14 +269,14 @@ function handleLogout() {
   max-width: 1240px;
   margin: 0 auto;
   width: 100%;
-  padding: 32px 28px;
+  padding: 20px 24px;
 }
 
 /* ═══ Footer ═══ */
 .shop-foot {
-  background: var(--color-soil);
-  color: rgba(255, 255, 255, 0.7);
-  padding: 40px 28px 32px;
+  background: #333333;
+  color: rgba(255, 255, 255, 0.6);
+  padding: 32px 28px 24px;
 }
 .foot-inner {
   max-width: 1240px;
@@ -320,47 +287,43 @@ function handleLogout() {
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 10px;
-  margin-bottom: 12px;
+  gap: 8px;
+  margin-bottom: 8px;
 }
 .foot-glyph {
-  width: 32px;
-  height: 32px;
+  width: 28px;
+  height: 28px;
   display: flex;
   align-items: center;
   justify-content: center;
-  background: rgba(255, 255, 255, 0.15);
+  background: rgba(255, 255, 255, 0.12);
   color: #fff;
-  font-family: var(--font-display);
-  font-size: 16px;
-  font-weight: 900;
-  border-radius: 8px;
+  font-size: 14px;
+  font-weight: 700;
+  border-radius: 4px;
 }
 .foot-name {
-  font-family: var(--font-display);
-  font-size: 18px;
-  font-weight: 700;
+  font-size: 16px;
+  font-weight: 600;
   color: #fff;
 }
 .foot-desc {
-  margin: 0 0 8px;
+  margin: 0 0 6px;
   font-size: 13px;
-  line-height: 1.8;
 }
 .foot-copy {
   margin: 0;
   font-size: 12px;
-  opacity: 0.5;
+  opacity: 0.45;
 }
 
-/* ═══ Responsive ═══ */
 @media (max-width: 860px) {
   .topbar-inner {
-    gap: 16px;
+    gap: 12px;
     padding: 0 16px;
   }
-  .nav-links { gap: 4px; }
-  .nav-item { padding: 6px 12px; font-size: 13px; }
-  .shop-body { padding: 20px 16px; }
+  .nav-links { gap: 2px; }
+  .nav-item { padding: 5px 10px; font-size: 13px; }
+  .shop-body { padding: 16px; }
 }
 </style>
